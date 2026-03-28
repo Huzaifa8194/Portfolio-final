@@ -82,15 +82,15 @@ export function SelectedWork({ scrollYProgress, sceneOpacity }: SelectedWorkProp
   const chromeGate = useTransform(scrollYProgress, workChromeGate);
 
   /** Hints only while the timeline is in an expand beat (not hold / left-rail / tail) */
-  const hintOpacity0 = useTransform(scrollYProgress, (v) => {
+  const hintOpacity0 = useTransform(scrollYProgress, (v): number => {
     if (!carouselExpandMotionActive(v)) return 0;
     return expandProgressForSlide(progressToP(v), 0) < 0.88 ? 1 : 0;
   });
-  const hintOpacity1 = useTransform(scrollYProgress, (v) => {
+  const hintOpacity1 = useTransform(scrollYProgress, (v): number => {
     if (!carouselExpandMotionActive(v)) return 0;
     return expandProgressForSlide(progressToP(v), 1) < 0.88 ? 1 : 0;
   });
-  const hintOpacity2 = useTransform(scrollYProgress, (v) => {
+  const hintOpacity2 = useTransform(scrollYProgress, (v): number => {
     if (!carouselExpandMotionActive(v)) return 0;
     return expandProgressForSlide(progressToP(v), 2) < 0.88 ? 1 : 0;
   });
