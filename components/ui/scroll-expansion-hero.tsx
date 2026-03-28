@@ -166,7 +166,7 @@ export default function ScrollExpandMedia({
                   />
                 </div>
 
-                <div
+                <motion.div
                   className="relative z-10 mt-4 flex flex-col items-center text-center transition-none"
                   style={{ opacity: titleChromeOpacity }}
                 >
@@ -186,10 +186,10 @@ export default function ScrollExpandMedia({
                       {scrollToExpand}
                     </motion.p>
                   ) : null}
-                </div>
+                </motion.div>
               </motion.div>
 
-              <div
+              <motion.div
                 className={cn(
                   "relative z-10 flex w-full flex-col items-center justify-center gap-3 text-center transition-none md:gap-4",
                   textBlend ? "mix-blend-difference" : "mix-blend-normal",
@@ -208,7 +208,7 @@ export default function ScrollExpandMedia({
                 >
                   {restOfTitle}
                 </motion.h2>
-              </div>
+              </motion.div>
             </div>
 
             {children ? (
