@@ -32,6 +32,24 @@ export const T_CAROUSEL_END = 0.99;
 
 export const T_WORK_INTERACT = 0.44;
 
+/**
+ * Scroll (full-track v) after the work scene is fully visible until the carousel timeline
+ * starts — idle Rivera, same band as “Next section / Your work, projects…” fading out before
+ * the doors phase hands off to Selected Work. Used to tune inter-slide spacing below.
+ */
+export const REF_V_WORK_FULL_TO_CAROUSEL =
+  T_CAROUSEL_START - T_WORK_SCENE_OPACITY[1];
+
+/**
+ * How wide a slice of carousel `t` would need to be to consume
+ * {@link REF_V_WORK_FULL_TO_CAROUSEL} in full-track `v` (~0.266). The timeline cannot give
+ * that much to every hold+left segment without shrinking beats or widening the carousel
+ * window; segment edges use a shared hold+left width so Rivera → Mayvn and
+ * Mayvn → iWrity match each other.
+ */
+export const REF_T_EQUIVALENT_WORK_TO_CAROUSEL =
+  REF_V_WORK_FULL_TO_CAROUSEL / (T_CAROUSEL_END - T_CAROUSEL_START);
+
 /** Higher = expansion reaches “full” later in p → slower motion (Selected Work only) */
 export const EXPAND_RATIO = 0.99;
 
@@ -51,11 +69,13 @@ const S12_DWELL_U = 0.48;
 const S0_PRE_DWELL_U = 0.34;
 
 /**
- * Cumulative t ∈ [0,1] — long holds + wide expand bands (page scroll length unchanged;
- * speed comes from EXPAND_RATIO + expandEaseIn below).
+ * Cumulative t ∈ [0,1]. Each slide’s hold + left-rail pair uses the same width (~0.15 of
+ * carousel t, ~0.0705 full-track v) so Rivera→Mayvn and Mayvn→iWrity feel even; see
+ * {@link REF_V_WORK_FULL_TO_CAROUSEL} / {@link REF_T_EQUIVALENT_WORK_TO_CAROUSEL} for the
+ * larger “work scene on → carousel starts” reference (~0.125 v).
  */
 const EDGES = [
-  0, 0.095, 0.18, 0.235, 0.435, 0.53, 0.595, 0.795, 0.89, 0.955, 1,
+  0, 0.095, 0.183, 0.245, 0.445, 0.533, 0.595, 0.795, 0.883, 0.945, 1,
 ] as const;
 
 const SEGMENT_KINDS = [
