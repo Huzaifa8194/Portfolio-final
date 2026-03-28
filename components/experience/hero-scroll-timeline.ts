@@ -5,7 +5,8 @@
  * each slide gets expand → hold (p frozen, “empty” scroll) → left rail fades in.
  * Scroll only advances **p** during expand sub-segments; holds consume scroll with no motion.
  * Before each new slide’s expand (except slide 0), the left rail fades out so the center
- * animation leads again, then the rail returns — final beat ends static with rail visible.
+ * animation leads again, then a **dwell** (extra scroll, p frozen) runs so Mayvn / iWrity
+ * don’t start expanding immediately, then p advances — final beat ends static with rail visible.
  */
 
 export const T_DOORS_END = 0.26;
@@ -17,23 +18,22 @@ export const T_INTRO_ROTATE = [0.06, 0.28] as const;
 
 export const T_INTRO_FULLY_OUT = T_INTRO_OPACITY[3];
 
-/** Tight after intro — less dead scroll before Selected Work */
-export const T_WORK_SCENE_START = 0.365;
+export const T_WORK_SCENE_START = 0.38;
 
-/** Snap to full opacity quickly for every slide’s reveal */
-export const T_WORK_SCENE_OPACITY = [0.365, 0.375, 1] as const;
+/** Rivera / first beat: snap to full opacity — no long fade-in over the first slide */
+export const T_WORK_SCENE_OPACITY = [0.38, 0.395, 1] as const;
 
-export const T_WORK_CHROME_START = 0.378;
-export const T_WORK_CHROME_END = 0.432;
+export const T_WORK_CHROME_START = 0.41;
+export const T_WORK_CHROME_END = 0.48;
 
 /** Carousel window — long enough on the track for clear beats (see HomeExperience SCROLL_BUDGET_VH) */
-export const T_CAROUSEL_START = 0.465;
+export const T_CAROUSEL_START = 0.52;
 export const T_CAROUSEL_END = 0.99;
 
-export const T_WORK_INTERACT = 0.392;
+export const T_WORK_INTERACT = 0.44;
 
-/** Higher = expansion reaches “full” later in p → slower, more scroll per beat */
-export const EXPAND_RATIO = 0.92;
+/** Higher = expansion reaches “full” later in p → slower motion (Selected Work only) */
+export const EXPAND_RATIO = 0.99;
 
 /** Crossfade width in p-space (must match SelectedWork BLEND) */
 export const CAROUSEL_BLEND = 0.12;
@@ -43,9 +43,19 @@ const P0 = 1 - CAROUSEL_BLEND - 0.01; // ~0.87 on slide 0
 const P1 = 2 - CAROUSEL_BLEND - 0.01;
 const P2 = 3 - CAROUSEL_BLEND - 0.01;
 
-/** Cumulative t ∈ [0,1] — wider expand slices = slower motion; holds/left unchanged rhythm */
+/** Fraction of s1_expand / s2_expand local u: rail fades out, then long dwell, then p moves */
+const S12_RAIL_OUT_U = 0.11;
+const S12_DWELL_U = 0.48;
+
+/** Start of s0_expand: scroll with p=0 (Rivera idle) before expansion begins */
+const S0_PRE_DWELL_U = 0.34;
+
+/**
+ * Cumulative t ∈ [0,1] — long holds + wide expand bands (page scroll length unchanged;
+ * speed comes from EXPAND_RATIO + expandEaseIn below).
+ */
 const EDGES = [
-  0, 0.17, 0.22, 0.31, 0.48, 0.53, 0.62, 0.79, 0.84, 0.93, 1,
+  0, 0.095, 0.18, 0.235, 0.435, 0.53, 0.595, 0.795, 0.89, 0.955, 1,
 ] as const;
 
 const SEGMENT_KINDS = [
@@ -82,6 +92,12 @@ function smoothstep01(x: number): number {
   return t * t * (3 - 2 * t);
 }
 
+/** Slower-than-linear p within expand segments — same carousel window, gentler motion */
+function expandEaseIn(u: number): number {
+  const t = Math.min(1, Math.max(0, u));
+  return Math.pow(t, 1.85);
+}
+
 /**
  * Effective carousel parameter p and left-rail opacity for editorial column.
  * Rail fades out at the start of s1/s2 expand, then expansion runs, then hold, then rail fades in.
@@ -95,7 +111,11 @@ export function carouselTimeline(v: number): { p: number; railOpacity: number } 
 
   switch (seg) {
     case "s0_expand": {
-      const p = u * P0;
+      if (u < S0_PRE_DWELL_U) {
+        return { p: 0, railOpacity: 0 };
+      }
+      const u2 = (u - S0_PRE_DWELL_U) / (1 - S0_PRE_DWELL_U);
+      const p = P0 * expandEaseIn(u2);
       return { p, railOpacity: 0 };
     }
     case "s0_hold":
@@ -103,13 +123,16 @@ export function carouselTimeline(v: number): { p: number; railOpacity: number } 
     case "s0_left":
       return { p: P0, railOpacity: smoothstep01(u) };
     case "s1_expand": {
-      const railCut = 0.16;
-      if (u < railCut) {
-        const ru = u / railCut;
+      const dwellEnd = S12_RAIL_OUT_U + S12_DWELL_U;
+      if (u < S12_RAIL_OUT_U) {
+        const ru = u / S12_RAIL_OUT_U;
         return { p: P0, railOpacity: 1 - smoothstep01(ru) };
       }
-      const u2 = (u - railCut) / (1 - railCut);
-      const p = P0 + u2 * (P1 - P0);
+      if (u < dwellEnd) {
+        return { p: P0, railOpacity: 0 };
+      }
+      const u2 = (u - dwellEnd) / (1 - dwellEnd);
+      const p = P0 + expandEaseIn(u2) * (P1 - P0);
       return { p, railOpacity: 0 };
     }
     case "s1_hold":
@@ -117,13 +140,16 @@ export function carouselTimeline(v: number): { p: number; railOpacity: number } 
     case "s1_left":
       return { p: P1, railOpacity: smoothstep01(u) };
     case "s2_expand": {
-      const railCut = 0.16;
-      if (u < railCut) {
-        const ru = u / railCut;
+      const dwellEnd = S12_RAIL_OUT_U + S12_DWELL_U;
+      if (u < S12_RAIL_OUT_U) {
+        const ru = u / S12_RAIL_OUT_U;
         return { p: P1, railOpacity: 1 - smoothstep01(ru) };
       }
-      const u2 = (u - railCut) / (1 - railCut);
-      const p = P1 + u2 * (P2 - P1);
+      if (u < dwellEnd) {
+        return { p: P1, railOpacity: 0 };
+      }
+      const u2 = (u - dwellEnd) / (1 - dwellEnd);
+      const p = P1 + expandEaseIn(u2) * (P2 - P1);
       return { p, railOpacity: 0 };
     }
     case "s2_hold":
@@ -160,10 +186,15 @@ export function leftRailOpacityFromV(v: number): number {
   return carouselTimeline(v).railOpacity;
 }
 
-/** True only while p is advancing (expand segments) — use so hints / motion don’t run during hold or left-rail beats */
+/** True only while p is advancing (not rail-out or dwell on slides 1–2) */
 export function carouselExpandMotionActive(v: number): boolean {
   if (v <= T_CAROUSEL_START || v >= T_CAROUSEL_END) return false;
   const t = (v - T_CAROUSEL_START) / (T_CAROUSEL_END - T_CAROUSEL_START);
-  const { seg } = segmentAt(t);
-  return seg === "s0_expand" || seg === "s1_expand" || seg === "s2_expand";
+  const { seg, u } = segmentAt(t);
+  if (seg === "s0_expand") return u >= S0_PRE_DWELL_U;
+  const dwellEnd = S12_RAIL_OUT_U + S12_DWELL_U;
+  if (seg === "s1_expand" || seg === "s2_expand") {
+    return u >= dwellEnd;
+  }
+  return false;
 }

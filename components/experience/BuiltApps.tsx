@@ -43,18 +43,22 @@ export function BuiltApps() {
   const x = useMotionValue(0);
 
   useLayoutEffect(() => {
-    const mq4 = window.matchMedia("(min-width: 1024px)");
+    const mq5 = window.matchMedia("(min-width: 1280px)");
+    const mq3 = window.matchMedia("(min-width: 900px)");
     const mq2 = window.matchMedia("(min-width: 640px)");
     const sync = () => {
-      if (mq4.matches) setSlidesPerView(4);
+      if (mq5.matches) setSlidesPerView(5);
+      else if (mq3.matches) setSlidesPerView(3);
       else if (mq2.matches) setSlidesPerView(2);
       else setSlidesPerView(1);
     };
     sync();
-    mq4.addEventListener("change", sync);
+    mq5.addEventListener("change", sync);
+    mq3.addEventListener("change", sync);
     mq2.addEventListener("change", sync);
     return () => {
-      mq4.removeEventListener("change", sync);
+      mq5.removeEventListener("change", sync);
+      mq3.removeEventListener("change", sync);
       mq2.removeEventListener("change", sync);
     };
   }, []);
@@ -119,7 +123,7 @@ export function BuiltApps() {
 
   return (
     <section
-      className="relative z-0 overflow-x-hidden border-t border-white/[0.06] bg-black px-6 py-20 md:px-10 md:py-28 lg:px-16"
+      className="relative z-0 overflow-x-hidden border-t border-white/[0.06] bg-black px-6 pb-20 pt-12 md:px-10 md:pb-24 md:pt-14 lg:px-16"
       aria-labelledby="apps-built-heading"
     >
       <div className="mx-auto max-w-[1200px]">
@@ -188,13 +192,16 @@ export function BuiltApps() {
                 }
                 transition={{ type: "spring", stiffness: 360, damping: 26 }}
               >
-                <div className="relative w-full bg-neutral-950" style={{ aspectRatio: "9 / 19" }}>
+                <div
+                  className="relative mx-auto w-full max-w-[200px] bg-neutral-950 sm:max-w-[190px] md:max-w-[175px] lg:max-w-[160px]"
+                  style={{ aspectRatio: "9 / 19" }}
+                >
                   <Image
                     src={slide.src}
                     alt={slide.alt}
                     fill
                     className="object-contain object-center"
-                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                    sizes="(min-width: 1280px) 18vw, (min-width: 900px) 28vw, (min-width: 640px) 40vw, 200px"
                     draggable={false}
                     priority={i === 0}
                   />

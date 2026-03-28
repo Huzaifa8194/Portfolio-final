@@ -58,7 +58,7 @@ export default function ScrollExpandMedia({
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  /** Softer bg fade on expand — same treatment for every slide (full-strength imagery) */
+  /** Softer bg fade on expand — same treatment for every project slide */
   const bgOpacity = useTransform(expandProgress, (ep) => 1 - ep * 0.85);
 
   const mediaWidth = useTransform(expandProgress, (ep) => {

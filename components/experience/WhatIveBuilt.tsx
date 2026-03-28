@@ -27,7 +27,7 @@ export function WhatIveBuilt() {
     if (!el) return;
     const vw = el.clientWidth;
     if (vw > 0) {
-      const w = Math.min(vw * 0.72, 560);
+      const w = Math.min(vw * 0.9, 780);
       setSlideWidth(w);
     }
   }, []);
@@ -78,7 +78,7 @@ export function WhatIveBuilt() {
 
   return (
     <section
-      className="relative z-0 overflow-x-hidden border-t border-white/[0.06] bg-black px-6 py-20 md:px-10 md:py-28 lg:px-16"
+      className="relative z-0 overflow-x-hidden border-t border-white/[0.06] bg-black px-6 pb-10 pt-20 md:px-10 md:pb-12 md:pt-28 lg:px-16"
       aria-labelledby="built-heading"
     >
       <div className="mx-auto max-w-[1200px]">
@@ -137,7 +137,7 @@ export function WhatIveBuilt() {
                       width={1920}
                       height={1080}
                       className="h-auto w-full object-contain object-center"
-                      sizes="72vw"
+                      sizes="(max-width: 768px) 92vw, 85vw"
                       draggable={false}
                       priority={k === 0}
                     />

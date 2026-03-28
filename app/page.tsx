@@ -15,10 +15,10 @@ export default function Home() {
       <div className="relative isolate z-0 min-h-[100svh] scroll-mt-0">
         <AreasOfExpertise />
       </div>
-      <div className="relative isolate z-0 min-h-[100svh]">
+      <div className="relative isolate z-0">
         <WhatIveBuilt />
       </div>
-      <div className="relative isolate z-0 min-h-[100svh] pb-24">
+      <div className="relative isolate z-0 pb-16 md:pb-20">
         <BuiltApps />
       </div>
     </main>
