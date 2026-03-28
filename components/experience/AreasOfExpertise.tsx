@@ -3,13 +3,13 @@
 import { motion } from "framer-motion";
 import { EXPERTISE_ITEMS, type ExpertiseItem } from "./expertise-data";
 
-const iconMotionPresets = [
+const iconMotionPresets: import("framer-motion").Target[] = [
   { y: [0, -5, 0], rotate: [0, -4, 4, 0], scale: [1, 1.05, 1] },
   { y: [0, -4, 0], rotate: [0, 6, -6, 0], scale: [1, 1.04, 1] },
   { x: [0, 3, -3, 0], y: [0, -2, 0], scale: [1, 1.08, 1] },
   { rotate: [0, 8, -8, 0], y: [0, -3, 0], scale: [1, 1.06, 1] },
   { y: [0, -4, 0], rotate: [0, -3, 3, 0], scale: [1, 1.05, 1] },
-] as const;
+];
 
 function AnimatedExpertiseIcon({
   Icon,
