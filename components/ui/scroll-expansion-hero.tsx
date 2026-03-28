@@ -22,8 +22,6 @@ export interface ScrollExpandMediaProps {
   children?: ReactNode;
   className?: string;
   contentClassName?: string;
-  /** Lead slide (e.g. Rivera): no dimming overlay / full-strength imagery */
-  vividLead?: boolean;
 }
 
 /**
@@ -44,7 +42,6 @@ export default function ScrollExpandMedia({
   children,
   className,
   contentClassName,
-  vividLead = false,
 }: ScrollExpandMediaProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [mediaSrcState, setMediaSrcState] = useState(mediaSrc);
@@ -61,9 +58,8 @@ export default function ScrollExpandMedia({
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  const bgOpacity = useTransform(expandProgress, (ep) =>
-    vividLead ? 1 - ep * 0.85 : 1 - ep,
-  );
+  /** Softer bg fade on expand — same treatment for every slide (full-strength imagery) */
+  const bgOpacity = useTransform(expandProgress, (ep) => 1 - ep * 0.85);
 
   const mediaWidth = useTransform(expandProgress, (ep) => {
     const w = isMobile ? 650 : 1250;
@@ -77,10 +73,6 @@ export default function ScrollExpandMedia({
     const x = isMobile ? 180 : 150;
     return ep * x;
   });
-
-  const overlayOpacity = useTransform(expandProgress, (ep) =>
-    vividLead ? 0 : Math.max(0, 0.45 - ep * 0.35),
-  );
 
   const childrenOpacity = useTransform(expandProgress, (ep) => {
     if (ep < 0.75) return 0;
@@ -126,12 +118,7 @@ export default function ScrollExpandMedia({
                 className="object-cover object-center"
               />
             </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute inset-0",
-                vividLead ? "bg-black/[0.04]" : "bg-black/10",
-              )}
-            />
+            <div className="pointer-events-none absolute inset-0 bg-black/[0.04]" />
           </motion.div>
 
           <div className="relative z-10 flex h-full min-h-0 w-full max-w-[100vw] flex-1 flex-col items-center justify-center px-0">
@@ -156,13 +143,6 @@ export default function ScrollExpandMedia({
                     onError={() => {
                       if (mediaFallbackSrc) setMediaSrcState(mediaFallbackSrc);
                     }}
-                  />
-                  <motion.div
-                    className={cn(
-                      "absolute inset-0 rounded-xl",
-                      vividLead ? "bg-transparent" : "bg-black/45",
-                    )}
-                    style={{ opacity: overlayOpacity }}
                   />
                 </div>
 

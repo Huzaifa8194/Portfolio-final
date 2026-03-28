@@ -144,7 +144,6 @@ export function SelectedWork({ scrollYProgress, sceneOpacity }: SelectedWorkProp
               expandProgress={expandBySlide[i]}
               chromeOpacity={chromeGate}
               hintOpacity={hintOpacities[i]}
-              vividLead={i === 0}
               mediaSrc={project.image}
               mediaFallbackSrc={SELECTED_PROJECT_IMAGE_FALLBACKS[i]}
               bgImageSrc={project.image}

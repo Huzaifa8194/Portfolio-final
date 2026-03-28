@@ -17,19 +17,20 @@ export const T_INTRO_ROTATE = [0.06, 0.28] as const;
 
 export const T_INTRO_FULLY_OUT = T_INTRO_OPACITY[3];
 
-export const T_WORK_SCENE_START = 0.38;
+/** Tight after intro — less dead scroll before Selected Work */
+export const T_WORK_SCENE_START = 0.365;
 
-/** Rivera / first beat: snap to full opacity — no long fade-in over the first slide */
-export const T_WORK_SCENE_OPACITY = [0.38, 0.395, 1] as const;
+/** Snap to full opacity quickly for every slide’s reveal */
+export const T_WORK_SCENE_OPACITY = [0.365, 0.375, 1] as const;
 
-export const T_WORK_CHROME_START = 0.41;
-export const T_WORK_CHROME_END = 0.48;
+export const T_WORK_CHROME_START = 0.378;
+export const T_WORK_CHROME_END = 0.432;
 
 /** Carousel window — long enough on the track for clear beats (see HomeExperience SCROLL_BUDGET_VH) */
-export const T_CAROUSEL_START = 0.52;
+export const T_CAROUSEL_START = 0.465;
 export const T_CAROUSEL_END = 0.99;
 
-export const T_WORK_INTERACT = 0.44;
+export const T_WORK_INTERACT = 0.392;
 
 /** Higher = expansion reaches “full” later in p → slower, more scroll per beat */
 export const EXPAND_RATIO = 0.92;

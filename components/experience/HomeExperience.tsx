@@ -21,7 +21,7 @@ const BIO =
  * Scroll-locked hero: sticky viewport ≈100vh while you scroll this much EXTRA past it.
  * Larger budget = more physical scroll for the same 0→1 progress (clearer phase separation).
  */
-const SCROLL_BUDGET_VH = 1320;
+const SCROLL_BUDGET_VH = 1180;
 /** Total track = one viewport + scroll budget while pinned */
 const SCROLL_TRACK_VH = 100 + SCROLL_BUDGET_VH;
 
