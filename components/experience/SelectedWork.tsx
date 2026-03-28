@@ -26,6 +26,7 @@ type SelectedWorkProps = {
 
 const BLEND = CAROUSEL_BLEND;
 
+/** Outgoing slide fades out; incoming slides snap to full opacity — no dim “ramp-in” on Mayvn / iWrity */
 function slideOpacityAtP(p: number, i: number): number {
   if (p <= 0) return i === 0 ? 1 : 0;
   if (i === 0) {
@@ -35,13 +36,13 @@ function slideOpacityAtP(p: number, i: number): number {
   }
   if (i === 1) {
     if (p < 1) return 0;
-    if (p < 1 + BLEND) return (p - 1) / BLEND;
     if (p < 2 - BLEND) return 1;
     if (p < 2) return (2 - p) / BLEND;
     return 0;
   }
   if (p < 2) return 0;
-  if (p < 2 + BLEND) return (p - 2) / BLEND;
+  if (p < 3 - BLEND) return 1;
+  if (p < 3) return (3 - p) / BLEND;
   return 1;
 }
 
@@ -110,6 +111,8 @@ export function SelectedWork({ scrollYProgress, sceneOpacity }: SelectedWorkProp
   const leftRailSkew = useTransform([copySkew, leftRailOpacity], ([s, o]) => Number(s) * Number(o));
   const leftRailX = useTransform([copyX, leftRailOpacity], ([x, o]) => Number(x) * Number(o));
 
+  const caseStudyImageDim = useTransform(leftRailOpacity, (o) => Number(o));
+
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     const p = progressToP(v);
     setActiveSlide(activeIndexFromP(p));
@@ -134,7 +137,7 @@ export function SelectedWork({ scrollYProgress, sceneOpacity }: SelectedWorkProp
         {SELECTED_PROJECTS.map((project, i) => (
           <motion.div
             key={project.title}
-            className="absolute inset-0"
+            className="absolute inset-0 z-0"
             style={{
               opacity: slideOpacities[i],
               willChange: "opacity",
@@ -155,6 +158,10 @@ export function SelectedWork({ scrollYProgress, sceneOpacity }: SelectedWorkProp
             />
           </motion.div>
         ))}
+        <motion.div
+          className="pointer-events-none absolute inset-0 z-[9] bg-gradient-to-r from-black/[0.72] via-black/[0.38] to-transparent"
+          style={{ opacity: caseStudyImageDim }}
+        />
       </div>
 
       <motion.div
