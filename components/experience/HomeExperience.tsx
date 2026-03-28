@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useTransform } from "framer-motion";
+import { motion, useTransform, type MotionValue } from "framer-motion";
 import {
   T_DOORS_END,
   T_INTRO_OPACITY,
