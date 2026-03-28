@@ -1,5 +1,6 @@
 /**
- * Single source of truth for scroll progress 0→1 on the HomeExperience track.
+ * Single source of truth for hero progress 0→1 (was scroll-scrubbed; now advanced by discrete
+ * wheel steps — see {@link HERO_STORY_STEP_TARGETS}).
  *
  * Selected Work carousel (T_CAROUSEL_START → T_CAROUSEL_END) uses **piecewise** time:
  * each slide gets expand → hold (p frozen, “empty” scroll) → left rail fades in.
@@ -26,7 +27,7 @@ export const T_WORK_SCENE_OPACITY = [0.38, 0.395, 1] as const;
 export const T_WORK_CHROME_START = 0.41;
 export const T_WORK_CHROME_END = 0.48;
 
-/** Carousel window — long enough on the track for clear beats (see HomeExperience SCROLL_BUDGET_VH) */
+/** Carousel window — same v-range as before; physical scroll length no longer drives it */
 export const T_CAROUSEL_START = 0.52;
 export const T_CAROUSEL_END = 0.99;
 
@@ -74,9 +75,11 @@ const S0_PRE_DWELL_U = 0.34;
  * {@link REF_V_WORK_FULL_TO_CAROUSEL} / {@link REF_T_EQUIVALENT_WORK_TO_CAROUSEL} for the
  * larger “work scene on → carousel starts” reference (~0.125 v).
  */
-const EDGES = [
+export const CAROUSEL_T_EDGES = [
   0, 0.095, 0.183, 0.245, 0.445, 0.533, 0.595, 0.795, 0.883, 0.945, 1,
 ] as const;
+
+const EDGES = CAROUSEL_T_EDGES;
 
 const SEGMENT_KINDS = [
   "s0_expand",
@@ -218,3 +221,31 @@ export function carouselExpandMotionActive(v: number): boolean {
   }
   return false;
 }
+
+/** Monotonic 0→1 stops: one wheel / key step advances to the next value (animated) */
+function buildHeroStoryStepTargets(): number[] {
+  const span = T_CAROUSEL_END - T_CAROUSEL_START;
+  const carouselVs = CAROUSEL_T_EDGES.map((e) => T_CAROUSEL_START + e * span);
+  const pre: number[] = [
+    0,
+    0.04,
+    T_DOORS_END * 0.35,
+    T_DOORS_END * 0.72,
+    T_DOORS_END,
+    T_INTRO_OPACITY[0],
+    T_INTRO_OPACITY[1],
+    T_INTRO_OPACITY[2],
+    T_INTRO_FULLY_OUT,
+    T_WORK_SCENE_OPACITY[0],
+    T_WORK_SCENE_OPACITY[1],
+    T_CAROUSEL_START,
+  ];
+  const merged = [...pre, ...carouselVs.filter((v) => v > T_CAROUSEL_START + 1e-4)];
+  const out = Array.from(new Set(merged.map((x) => Math.round(x * 1e6) / 1e6))).sort(
+    (a, b) => a - b,
+  );
+  if (out[out.length - 1] < 1) out.push(1);
+  return out;
+}
+
+export const HERO_STORY_STEP_TARGETS: readonly number[] = buildHeroStoryStepTargets();

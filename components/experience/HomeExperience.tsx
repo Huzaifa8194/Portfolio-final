@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { motion, useTransform } from "framer-motion";
 import {
   T_DOORS_END,
   T_INTRO_OPACITY,
@@ -11,19 +11,12 @@ import {
   T_WORK_SCENE_OPACITY,
 } from "@/components/experience/hero-scroll-timeline";
 import { SelectedWork } from "@/components/experience/SelectedWork";
+import { useHeroStoryProgress } from "@/components/experience/useHeroStoryProgress";
 import { NextSectionContent } from "@/components/hero/NextSectionContent";
 import { FloatingPaths } from "@/components/ui/background-paths";
 
 const BIO =
   "I am a visionary designer who bridges cultures through his innovative design philosophy and scaleable systems.";
-
-/**
- * Scroll-locked hero: sticky viewport ≈100vh while you scroll this much EXTRA past it.
- * Larger budget = more physical scroll for the same 0→1 progress (clearer phase separation).
- */
-const SCROLL_BUDGET_VH = 1320;
-/** Total track = one viewport + scroll budget while pinned */
-const SCROLL_TRACK_VH = 100 + SCROLL_BUDGET_VH;
 
 function DoorPathsBackdrop() {
   return (
@@ -79,45 +72,37 @@ function DoorPanel({
 
 export function HomeExperience() {
   const trackRef = useRef<HTMLDivElement>(null);
+  const storyProgress = useHeroStoryProgress(trackRef);
 
-  const { scrollYProgress } = useScroll({
-    target: trackRef,
-    offset: ["start start", "end start"],
-  });
+  const topY = useTransform(storyProgress, [0, T_DOORS_END], ["0svh", "-50.5svh"]);
+  const bottomY = useTransform(storyProgress, [0, T_DOORS_END], ["0svh", "50.5svh"]);
+  const topSkew = useTransform(storyProgress, [0, T_DOORS_END], [0, -2.5]);
+  const bottomSkew = useTransform(storyProgress, [0, T_DOORS_END], [0, 2.5]);
 
-  const topY = useTransform(scrollYProgress, [0, T_DOORS_END], ["0svh", "-50.5svh"]);
-  const bottomY = useTransform(scrollYProgress, [0, T_DOORS_END], ["0svh", "50.5svh"]);
-  const topSkew = useTransform(scrollYProgress, [0, T_DOORS_END], [0, -2.5]);
-  const bottomSkew = useTransform(scrollYProgress, [0, T_DOORS_END], [0, 2.5]);
+  const introOpacity = useTransform(storyProgress, [...T_INTRO_OPACITY], [0, 1, 1, 0]);
+  const introY = useTransform(storyProgress, [...T_INTRO_Y], [52, 14, 0, -6]);
+  const introScale = useTransform(storyProgress, [...T_INTRO_SCALE], [0.88, 0.97, 1, 1]);
+  const introRotate = useTransform(storyProgress, [...T_INTRO_ROTATE], [-2, 0]);
 
-  const introOpacity = useTransform(scrollYProgress, [...T_INTRO_OPACITY], [0, 1, 1, 0]);
-  const introY = useTransform(scrollYProgress, [...T_INTRO_Y], [52, 14, 0, -6]);
-  const introScale = useTransform(scrollYProgress, [...T_INTRO_SCALE], [0.88, 0.97, 1, 1]);
-  const introRotate = useTransform(scrollYProgress, [...T_INTRO_ROTATE], [-2, 0]);
-
-  const workSceneOpacity = useTransform(scrollYProgress, [...T_WORK_SCENE_OPACITY], [0, 1, 1]);
+  const workSceneOpacity = useTransform(storyProgress, [...T_WORK_SCENE_OPACITY], [0, 1, 1]);
 
   /** Above Selected Work while closed; drop below it after door phase so projects stay visible even if y/svh glitches */
-  const doorZIndex = useTransform(scrollYProgress, [0, T_DOORS_END], [20, 2]);
+  const doorZIndex = useTransform(storyProgress, [0, T_DOORS_END], [20, 2]);
 
-  const progressBarX = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const progressBarScaleY = useTransform(scrollYProgress, [0, 0.26, 0.65, 1], [1, 1.35, 1.2, 1]);
+  const progressBarX = useTransform(storyProgress, [0, 1], [0, 1]);
+  const progressBarScaleY = useTransform(storyProgress, [0, 0.26, 0.65, 1], [1, 1.35, 1.2, 1]);
 
   const introVisibility = useTransform(introOpacity, (o) =>
     o < 0.02 ? "hidden" : "visible",
   );
 
   return (
-    <div
-      ref={trackRef}
-      className="relative w-full [overflow-anchor:none]"
-      style={{ height: `${SCROLL_TRACK_VH}vh`, minHeight: `${SCROLL_TRACK_VH}vh` }}
-    >
+    <div ref={trackRef} className="relative w-full min-h-[100svh] [overflow-anchor:none]">
       <div className="sticky top-0 h-[100svh] min-h-[100svh] w-full overflow-hidden">
         <div className="relative h-full min-h-0 w-full bg-[#000000]">
           <div className="absolute inset-0 z-0 bg-neutral-950" />
 
-          <SelectedWork scrollYProgress={scrollYProgress} sceneOpacity={workSceneOpacity} />
+          <SelectedWork scrollYProgress={storyProgress} sceneOpacity={workSceneOpacity} />
 
           <motion.div
             className="pointer-events-none absolute inset-0 z-[14] flex flex-col items-center justify-center px-6 py-24"
