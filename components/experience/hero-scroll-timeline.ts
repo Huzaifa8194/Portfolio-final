@@ -1,0 +1,168 @@
+/**
+ * Single source of truth for scroll progress 0→1 on the HomeExperience track.
+ *
+ * Selected Work carousel (T_CAROUSEL_START → T_CAROUSEL_END) uses **piecewise** time:
+ * each slide gets expand → hold (p frozen, “empty” scroll) → left rail fades in.
+ * Scroll only advances **p** during expand sub-segments; holds consume scroll with no motion.
+ * Before each new slide’s expand (except slide 0), the left rail fades out so the center
+ * animation leads again, then the rail returns — final beat ends static with rail visible.
+ */
+
+export const T_DOORS_END = 0.26;
+
+export const T_INTRO_OPACITY = [0.05, 0.15, 0.26, 0.36] as const;
+export const T_INTRO_Y = [0.06, 0.15, 0.27, 0.36] as const;
+export const T_INTRO_SCALE = [0.08, 0.17, 0.29, 0.36] as const;
+export const T_INTRO_ROTATE = [0.06, 0.28] as const;
+
+export const T_INTRO_FULLY_OUT = T_INTRO_OPACITY[3];
+
+export const T_WORK_SCENE_START = 0.38;
+
+/** Rivera / first beat: snap to full opacity — no long fade-in over the first slide */
+export const T_WORK_SCENE_OPACITY = [0.38, 0.395, 1] as const;
+
+export const T_WORK_CHROME_START = 0.41;
+export const T_WORK_CHROME_END = 0.48;
+
+/** Carousel window — long enough on the track for clear beats (see HomeExperience SCROLL_BUDGET_VH) */
+export const T_CAROUSEL_START = 0.52;
+export const T_CAROUSEL_END = 0.99;
+
+export const T_WORK_INTERACT = 0.44;
+
+/** Higher = expansion reaches “full” later in p → slower, more scroll per beat */
+export const EXPAND_RATIO = 0.92;
+
+/** Crossfade width in p-space (must match SelectedWork BLEND) */
+export const CAROUSEL_BLEND = 0.12;
+
+/** Freeze p just below blend start so one slide stays “full” during hold + left-rail */
+const P0 = 1 - CAROUSEL_BLEND - 0.01; // ~0.87 on slide 0
+const P1 = 2 - CAROUSEL_BLEND - 0.01;
+const P2 = 3 - CAROUSEL_BLEND - 0.01;
+
+/** Cumulative t ∈ [0,1] — wider expand slices = slower motion; holds/left unchanged rhythm */
+const EDGES = [
+  0, 0.17, 0.22, 0.31, 0.48, 0.53, 0.62, 0.79, 0.84, 0.93, 1,
+] as const;
+
+const SEGMENT_KINDS = [
+  "s0_expand",
+  "s0_hold",
+  "s0_left",
+  "s1_expand",
+  "s1_hold",
+  "s1_left",
+  "s2_expand",
+  "s2_hold",
+  "s2_left",
+  "tail",
+] as const;
+
+type SegmentKind = (typeof SEGMENT_KINDS)[number];
+
+function segmentAt(t: number): { seg: SegmentKind; u: number } {
+  const x = Math.min(1, Math.max(0, t));
+  for (let i = 0; i < EDGES.length - 1; i++) {
+    const a = EDGES[i];
+    const b = EDGES[i + 1];
+    const last = i === EDGES.length - 2;
+    if (x >= a && (last ? x <= b : x < b)) {
+      const u = b > a ? (Math.min(x, b) - a) / (b - a) : 0;
+      return { seg: SEGMENT_KINDS[i], u: Math.min(1, Math.max(0, u)) };
+    }
+  }
+  return { seg: "tail", u: 1 };
+}
+
+function smoothstep01(x: number): number {
+  const t = Math.min(1, Math.max(0, x));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Effective carousel parameter p and left-rail opacity for editorial column.
+ * Rail fades out at the start of s1/s2 expand, then expansion runs, then hold, then rail fades in.
+ */
+export function carouselTimeline(v: number): { p: number; railOpacity: number } {
+  if (v <= T_CAROUSEL_START) return { p: 0, railOpacity: 0 };
+  if (v >= T_CAROUSEL_END) return { p: 3, railOpacity: 1 };
+
+  const t = (v - T_CAROUSEL_START) / (T_CAROUSEL_END - T_CAROUSEL_START);
+  const { seg, u } = segmentAt(t);
+
+  switch (seg) {
+    case "s0_expand": {
+      const p = u * P0;
+      return { p, railOpacity: 0 };
+    }
+    case "s0_hold":
+      return { p: P0, railOpacity: 0 };
+    case "s0_left":
+      return { p: P0, railOpacity: smoothstep01(u) };
+    case "s1_expand": {
+      const railCut = 0.16;
+      if (u < railCut) {
+        const ru = u / railCut;
+        return { p: P0, railOpacity: 1 - smoothstep01(ru) };
+      }
+      const u2 = (u - railCut) / (1 - railCut);
+      const p = P0 + u2 * (P1 - P0);
+      return { p, railOpacity: 0 };
+    }
+    case "s1_hold":
+      return { p: P1, railOpacity: 0 };
+    case "s1_left":
+      return { p: P1, railOpacity: smoothstep01(u) };
+    case "s2_expand": {
+      const railCut = 0.16;
+      if (u < railCut) {
+        const ru = u / railCut;
+        return { p: P1, railOpacity: 1 - smoothstep01(ru) };
+      }
+      const u2 = (u - railCut) / (1 - railCut);
+      const p = P1 + u2 * (P2 - P1);
+      return { p, railOpacity: 0 };
+    }
+    case "s2_hold":
+      return { p: P2, railOpacity: 0 };
+    case "s2_left":
+      return { p: P2, railOpacity: smoothstep01(u) };
+    case "tail":
+      return { p: 3, railOpacity: 1 };
+    default:
+      return { p: 3, railOpacity: 1 };
+  }
+}
+
+/** @deprecated use carouselTimeline(v).p — kept name for minimal churn in components */
+export function progressToP(v: number): number {
+  return carouselTimeline(v).p;
+}
+
+export function expandProgressForSlide(p: number, slideIndex: number): number {
+  const local = p - slideIndex;
+  if (local <= 0) return 0;
+  if (local >= 1) return 1;
+  return Math.min(1, local / EXPAND_RATIO);
+}
+
+export function workChromeGate(v: number): number {
+  if (v <= T_WORK_CHROME_START) return 0;
+  if (v >= T_WORK_CHROME_END) return 1;
+  return (v - T_WORK_CHROME_START) / (T_WORK_CHROME_END - T_WORK_CHROME_START);
+}
+
+/** Left rail opacity from timeline (replaces old p-only gate) */
+export function leftRailOpacityFromV(v: number): number {
+  return carouselTimeline(v).railOpacity;
+}
+
+/** True only while p is advancing (expand segments) — use so hints / motion don’t run during hold or left-rail beats */
+export function carouselExpandMotionActive(v: number): boolean {
+  if (v <= T_CAROUSEL_START || v >= T_CAROUSEL_END) return false;
+  const t = (v - T_CAROUSEL_START) / (T_CAROUSEL_END - T_CAROUSEL_START);
+  const { seg } = segmentAt(t);
+  return seg === "s0_expand" || seg === "s1_expand" || seg === "s2_expand";
+}
