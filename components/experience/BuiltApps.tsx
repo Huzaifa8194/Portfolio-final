@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -16,6 +17,8 @@ import {
   type PanInfo,
 } from "framer-motion";
 import { APP_SLIDES } from "./built-apps-data";
+
+const N = APP_SLIDES.length;
 
 function Chevron({ className, flipped }: { className?: string; flipped?: boolean }) {
   return (
@@ -33,14 +36,39 @@ function Chevron({ className, flipped }: { className?: string; flipped?: boolean
   );
 }
 
+function mod(n: number, m: number) {
+  return ((n % m) + m) % m;
+}
+
+function isLogicalSlideInView(
+  logicalSlide: number,
+  internalIndex: number,
+  slidesPerView: number,
+) {
+  const first = mod(internalIndex, N);
+  for (let k = 0; k < slidesPerView; k++) {
+    if (mod(first + k, N) === logicalSlide) return true;
+  }
+  return false;
+}
+
 export function BuiltApps() {
   const reduceMotion = useReducedMotion();
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [slidesPerView, setSlidesPerView] = useState(1);
   const [slideWidth, setSlideWidth] = useState(0);
-  const [index, setIndex] = useState(0);
+  /** Index into tripled track; start in middle copy for infinite prev/next */
+  const [internalIndex, setInternalIndex] = useState(N);
   const x = useMotionValue(0);
+
+  const loopedSlides = useMemo(() => [...APP_SLIDES, ...APP_SLIDES, ...APP_SLIDES], []);
+  /** Largest valid first-visible index into `loopedSlides` */
+  const maxInternal = Math.max(0, 3 * N - slidesPerView);
+
+  useEffect(() => {
+    setInternalIndex((i) => Math.min(Math.max(i, 0), maxInternal));
+  }, [maxInternal]);
 
   useLayoutEffect(() => {
     const mq5 = window.matchMedia("(min-width: 1280px)");
@@ -63,8 +91,6 @@ export function BuiltApps() {
     };
   }, []);
 
-  const maxIndex = Math.max(0, APP_SLIDES.length - slidesPerView);
-
   const measureViewport = useCallback(() => {
     const el = viewportRef.current;
     if (!el) return;
@@ -85,29 +111,57 @@ export function BuiltApps() {
     };
   }, [measureViewport]);
 
-  useEffect(() => {
-    setIndex((i) => Math.min(i, maxIndex));
-  }, [maxIndex]);
-
   const step = slideWidth;
 
   useEffect(() => {
     if (!step) return;
-    const target = -index * step;
+    const target = -internalIndex * step;
     const opts = reduceMotion
       ? { duration: 0.22, ease: [0.22, 1, 0.36, 1] as const }
       : { type: "spring" as const, stiffness: 280, damping: 32, mass: 0.85 };
-    const ctrl = animate(x, target, opts);
+    const ctrl = animate(x, target, {
+      ...opts,
+      onComplete: () => {
+        setInternalIndex((prev) => {
+          if (prev >= 2 * N) {
+            const next = prev - N;
+            x.set(-next * step);
+            return next;
+          }
+          if (prev === 0) {
+            const next = N;
+            x.set(-next * step);
+            return next;
+          }
+          return prev;
+        });
+      },
+    });
     return () => ctrl.stop();
-  }, [index, step, x, reduceMotion]);
+  }, [internalIndex, step, x, reduceMotion]);
 
   const goNext = useCallback(() => {
-    setIndex((i) => Math.min(i + 1, maxIndex));
-  }, [maxIndex]);
+    if (!step) return;
+    setInternalIndex((i) => {
+      if (i >= maxInternal) {
+        x.set(-N * step);
+        return N;
+      }
+      return i + 1;
+    });
+  }, [maxInternal, step, x]);
 
   const goPrev = useCallback(() => {
-    setIndex((i) => Math.max(i - 1, 0));
-  }, []);
+    if (!step) return;
+    setInternalIndex((i) => {
+      if (i <= 0) {
+        const jump = Math.max(0, 2 * N - slidesPerView);
+        x.set(-jump * step);
+        return jump;
+      }
+      return i - 1;
+    });
+  }, [slidesPerView, step, x]);
 
   const onDragEnd = useCallback(
     (_: unknown, info: PanInfo) => {
@@ -115,11 +169,15 @@ export function BuiltApps() {
       const current = x.get();
       const projected = current + info.velocity.x * 0.12;
       let next = Math.round(-projected / step);
-      next = Math.max(0, Math.min(maxIndex, next));
-      setIndex(next);
+      next = Math.max(0, Math.min(maxInternal, next));
+      setInternalIndex(next);
     },
-    [maxIndex, step, x],
+    [maxInternal, step, x],
   );
+
+  const goToLogicalSlide = useCallback((logical: number) => {
+    setInternalIndex(logical + N);
+  }, []);
 
   return (
     <section
@@ -146,22 +204,19 @@ export function BuiltApps() {
       </div>
 
       <div className="relative mt-12 w-screen max-w-[100vw] -translate-x-1/2 left-1/2 md:mt-16">
-        {index > 0 && (
-          <button
-            type="button"
-            onClick={goPrev}
-            className="absolute left-4 top-1/2 z-30 -translate-y-1/2 p-2 text-white/70 transition-colors hover:text-white md:left-6 lg:left-10"
-            aria-label="Previous apps"
-          >
-            <Chevron className="h-8 w-8" flipped />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={goPrev}
+          className="absolute left-4 top-1/2 z-30 -translate-y-1/2 p-2 text-white/70 transition-colors hover:text-white md:left-6 lg:left-10"
+          aria-label="Previous apps"
+        >
+          <Chevron className="h-8 w-8" flipped />
+        </button>
 
         <button
           type="button"
           onClick={goNext}
-          disabled={index >= maxIndex}
-          className="absolute right-4 top-1/2 z-30 -translate-y-1/2 p-2 text-white/80 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-25 md:right-6 lg:right-10"
+          className="absolute right-4 top-1/2 z-30 -translate-y-1/2 p-2 text-white/80 transition-colors hover:text-white md:right-6 lg:right-10"
           aria-label="Next apps"
         >
           <Chevron className="h-8 w-8" />
@@ -174,14 +229,14 @@ export function BuiltApps() {
             style={{ x, gap: 0 }}
             drag={reduceMotion ? false : "x"}
             dragConstraints={
-              step ? { left: -(maxIndex * step), right: 0 } : undefined
+              step ? { left: -(maxInternal * step), right: 0 } : undefined
             }
             dragElastic={0.06}
             onDragEnd={onDragEnd}
           >
-            {APP_SLIDES.map((slide, i) => (
+            {loopedSlides.map((slide, i) => (
               <motion.div
-                key={slide.src}
+                key={`${slide.src}-${i}`}
                 className="relative shrink-0 select-none bg-black"
                 style={{ width: slideWidth > 0 ? slideWidth : "100%" }}
                 initial={false}
@@ -193,24 +248,23 @@ export function BuiltApps() {
                 transition={{ type: "spring", stiffness: 360, damping: 26 }}
               >
                 <div
-                  className="relative mx-auto w-full max-w-[200px] bg-neutral-950 sm:max-w-[190px] md:max-w-[175px] lg:max-w-[160px]"
+                  className="relative w-full bg-neutral-950"
                   style={{ aspectRatio: "9 / 19" }}
                 >
                   <Image
                     src={slide.src}
                     alt={slide.alt}
                     fill
-                    className="object-contain object-center"
-                    sizes="(min-width: 1280px) 18vw, (min-width: 900px) 28vw, (min-width: 640px) 40vw, 200px"
+                    className="object-cover object-center"
+                    sizes="(min-width: 1280px) 20vw, (min-width: 900px) 33vw, (min-width: 640px) 50vw, 100vw"
                     draggable={false}
-                    priority={i === 0}
+                    priority={i === N}
                   />
                 </div>
               </motion.div>
             ))}
           </motion.div>
 
-          {/* Darken toward the right edge (billboard-style vignette on trailing cards) */}
           <div
             className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[min(42%,320px)] bg-gradient-to-l from-black via-black/75 to-transparent"
             aria-hidden
@@ -220,15 +274,12 @@ export function BuiltApps() {
 
       <div className="mx-auto mt-10 flex max-w-[1200px] flex-wrap justify-center gap-2 md:mt-12">
         {APP_SLIDES.map((_, i) => {
-          const inView =
-            slidesPerView === 1
-              ? i === index
-              : i >= index && i < index + slidesPerView;
+          const inView = isLogicalSlideInView(i, internalIndex, slidesPerView);
           return (
             <button
               key={i}
               type="button"
-              onClick={() => setIndex(Math.min(i, maxIndex))}
+              onClick={() => goToLogicalSlide(i)}
               className="group p-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
               aria-label={`Go to app ${i + 1}`}
               aria-current={inView ? "true" : undefined}
