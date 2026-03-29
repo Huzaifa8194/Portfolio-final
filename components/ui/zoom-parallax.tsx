@@ -16,6 +16,9 @@ interface ZoomParallaxProps {
   images: ZoomParallaxImage[];
 }
 
+/** Longer scroll track so scrollYProgress reliably reaches ~1 and the zoom can finish. */
+const SCROLL_SECTION_VH = 520;
+
 export function ZoomParallax({ images }: ZoomParallaxProps) {
   const container = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -24,22 +27,32 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
   });
 
   /**
-   * Main screenshot: zoom **out** → **in** to natural size.
-   * End scale is always `1` so the CSS box never exceeds the viewport (never larger than screen).
+   * Hero: stronger zoom (smaller start) → 1 at end (still viewport-bounded by CSS).
+   * Slightly front-loaded so the main shot reads “done” before the very last pixels of scroll.
    */
-  const scaleHero = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
+  const scaleHero = useTransform(scrollYProgress, [0, 0.78, 1], [0.28, 1, 1]);
 
-  /** Decorative layers: modest zoom so they stay atmosphere, not dominant */
-  const scale4 = useTransform(scrollYProgress, [0, 1], [1, 2.2]);
-  const scale5 = useTransform(scrollYProgress, [0, 1], [1, 2.4]);
-  const scale6 = useTransform(scrollYProgress, [0, 1], [1, 2.6]);
-  const scale8 = useTransform(scrollYProgress, [0, 1], [1, 2.8]);
-  const scale9 = useTransform(scrollYProgress, [0, 1], [1, 3]);
+  /** Decorative layers: zoom a bit, then disappear so only the hero remains at the end */
+  const scale4 = useTransform(scrollYProgress, [0, 1], [1, 2.1]);
+  const scale5 = useTransform(scrollYProgress, [0, 1], [1, 2.2]);
+  const scale6 = useTransform(scrollYProgress, [0, 1], [1, 2.35]);
+  const scale8 = useTransform(scrollYProgress, [0, 1], [1, 2.5]);
+  const scale9 = useTransform(scrollYProgress, [0, 1], [1, 2.65]);
 
   const scales = [scale4, scale5, scale6, scale5, scale6, scale8, scale9];
 
+  const opacityDecor = useTransform(
+    scrollYProgress,
+    [0, 0.35, 0.62, 0.88, 1],
+    [1, 0.92, 0.55, 0.12, 0],
+  );
+
   return (
-    <div ref={container} className="relative h-[300vh]">
+    <div
+      ref={container}
+      className="relative"
+      style={{ height: `${SCROLL_SECTION_VH}vh` }}
+    >
       <div className="sticky top-0 h-screen overflow-hidden">
         {images.map(({ src, alt }, index) => {
           const isHeroScreenshot = index === 0;
@@ -48,8 +61,17 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
           return (
             <motion.div
               key={`${src}-${index}`}
-              style={{ scale, transformOrigin: "center center" }}
-              className={`absolute top-0 flex h-full w-full items-center justify-center ${
+              style={
+                isHeroScreenshot
+                  ? { scale, transformOrigin: "center center", zIndex: 30 }
+                  : {
+                      scale,
+                      opacity: opacityDecor,
+                      transformOrigin: "center center",
+                      zIndex: index,
+                    }
+              }
+              className={`pointer-events-none absolute top-0 flex h-full w-full items-center justify-center ${
                 index === 1
                   ? "[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]"
                   : ""
