@@ -248,7 +248,7 @@ export function BuiltApps() {
                 transition={{ type: "spring", stiffness: 360, damping: 26 }}
               >
                 <div
-                  className="relative w-full bg-neutral-950"
+                  className="relative mx-auto w-full max-w-[min(11rem,72vw)] bg-neutral-950 sm:max-w-none"
                   style={{ aspectRatio: "9 / 19" }}
                 >
                   <Image
@@ -256,7 +256,7 @@ export function BuiltApps() {
                     alt={slide.alt}
                     fill
                     className="object-cover object-center"
-                    sizes="(min-width: 1280px) 20vw, (min-width: 900px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    sizes="(min-width: 1280px) 20vw, (min-width: 900px) 33vw, (min-width: 640px) 50vw, 70vw"
                     draggable={false}
                     priority={i === N}
                   />

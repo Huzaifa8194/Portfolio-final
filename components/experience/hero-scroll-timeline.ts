@@ -4,9 +4,10 @@
  * Selected Work carousel (T_CAROUSEL_START → T_CAROUSEL_END) uses **piecewise** time:
  * each slide gets expand → hold (p frozen, “empty” scroll) → left rail fades in.
  * Scroll only advances **p** during expand sub-segments; holds consume scroll with no motion.
- * Before each new slide’s expand (except slide 0), the left rail fades out so the center
- * animation leads again, then a **dwell** (extra scroll, p frozen) runs so Mayvn / iWrity
- * don’t start expanding immediately, then p advances — final beat ends static with rail visible.
+ * Before each new slide’s expand (except slide 0), a **dwell** (extra scroll, p frozen) runs so
+ * Mayvn / iWrity don’t start expanding immediately; the case-study rail stays visible until
+ * that dwell ends, then it fades out as p advances into the next slide — final beat ends
+ * static with rail visible.
  */
 
 export const T_DOORS_END = 0.26;
@@ -120,7 +121,8 @@ function expandEaseIn(u: number): number {
 
 /**
  * Effective carousel parameter p and left-rail opacity for editorial column.
- * Rail fades out at the start of s1/s2 expand, then expansion runs, then hold, then rail fades in.
+ * After inter-slide dwell, rail stays up until p crosses into the next slide (1 or 2), then
+ * fades so the center expansion leads; hold → rail fades in again on the left beat.
  */
 export function carouselTimeline(v: number): { p: number; railOpacity: number } {
   if (v <= T_CAROUSEL_START) return { p: 0, railOpacity: 0 };
@@ -144,16 +146,16 @@ export function carouselTimeline(v: number): { p: number; railOpacity: number } 
       return { p: P0, railOpacity: smoothstep01(u) };
     case "s1_expand": {
       const dwellEnd = S12_RAIL_OUT_U + S12_DWELL_U;
-      if (u < S12_RAIL_OUT_U) {
-        const ru = u / S12_RAIL_OUT_U;
-        return { p: P0, railOpacity: 1 - smoothstep01(ru) };
-      }
       if (u < dwellEnd) {
-        return { p: P0, railOpacity: 0 };
+        return { p: P0, railOpacity: 1 };
       }
       const u2 = (u - dwellEnd) / (1 - dwellEnd);
       const p = P0 + expandEaseIn(u2) * (P1 - P0);
-      return { p, railOpacity: 0 };
+      const railOpacity =
+        p < 1
+          ? 1
+          : 1 - smoothstep01(Math.min(1, (p - 1) / CAROUSEL_BLEND));
+      return { p, railOpacity };
     }
     case "s1_hold":
       return { p: P1, railOpacity: 0 };
@@ -161,16 +163,16 @@ export function carouselTimeline(v: number): { p: number; railOpacity: number } 
       return { p: P1, railOpacity: smoothstep01(u) };
     case "s2_expand": {
       const dwellEnd = S12_RAIL_OUT_U + S12_DWELL_U;
-      if (u < S12_RAIL_OUT_U) {
-        const ru = u / S12_RAIL_OUT_U;
-        return { p: P1, railOpacity: 1 - smoothstep01(ru) };
-      }
       if (u < dwellEnd) {
-        return { p: P1, railOpacity: 0 };
+        return { p: P1, railOpacity: 1 };
       }
       const u2 = (u - dwellEnd) / (1 - dwellEnd);
       const p = P1 + expandEaseIn(u2) * (P2 - P1);
-      return { p, railOpacity: 0 };
+      const railOpacity =
+        p < 2
+          ? 1
+          : 1 - smoothstep01(Math.min(1, (p - 2) / CAROUSEL_BLEND));
+      return { p, railOpacity };
     }
     case "s2_hold":
       return { p: P2, railOpacity: 0 };
