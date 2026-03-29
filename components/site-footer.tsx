@@ -9,13 +9,6 @@ const LINKEDIN_URL =
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "My work", href: "/my-work" },
-  { label: "Rivera Travels", href: "/projects/rivera" },
-  { label: "Mayvn", href: "/projects/mayvn" },
-  { label: "iWrity", href: "/projects/iwrity" },
-  { label: "Best Car Events", href: "/projects/bce" },
-  { label: "Oracle Grupo", href: "/projects/oracle" },
-  { label: "Nordic Relocators", href: "/projects/sr" },
-  { label: "Law & Bar Academy", href: "/projects/lawandbar" },
 ];
 
 export function SiteFooter() {
