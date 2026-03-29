@@ -40,7 +40,7 @@ function AnimatedExpertiseIcon({
 export function AreasOfExpertise() {
   return (
     <section
-      className="relative z-0 border-t border-white/[0.06] bg-black px-6 py-20 md:px-10 md:py-28 lg:px-16"
+      className="relative z-0 border-t border-white/[0.06] bg-transparent px-6 py-20 md:px-10 md:py-28 lg:px-16"
       aria-labelledby="expertise-heading"
     >
       <div className="mx-auto max-w-5xl">
