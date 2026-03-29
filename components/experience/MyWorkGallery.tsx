@@ -27,7 +27,7 @@ export function MyWorkGallery() {
 
   return (
     <div className="bg-black min-h-[100dvh] text-white overflow-x-hidden w-full overscroll-none">
-      <div className="min-h-[180px] sm:min-h-[220px] flex flex-col items-center justify-center space-y-3 sm:space-y-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 md:pb-6 px-6">
+      <div className="flex flex-col items-center justify-center space-y-2 md:space-y-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2 md:pb-6 px-6 md:min-h-[220px] md:pt-[max(1.5rem,env(safe-area-inset-top))]">
         <div className="space-y-1 text-center">
           <span className="text-[10px] font-bold tracking-widest text-white/50 uppercase">
             Portfolio
@@ -58,10 +58,10 @@ export function MyWorkGallery() {
       </div>
 
       <RadialScrollGallery
-        className="!min-h-[min(100dvh,720px)] md:!min-h-[600px]"
+        className="-mt-1 md:mt-0 !min-h-[min(100dvh,720px)] md:!min-h-[600px]"
         baseRadius={400}
         mobileRadius={200}
-        visiblePercentage={48}
+        visiblePercentage={52}
         scrollDuration={1600}
         fullRotations={36}
         startTrigger="top 14%"

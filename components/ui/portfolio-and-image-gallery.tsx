@@ -345,9 +345,15 @@ export const RadialScrollGallery = forwardRef<
       ? childSize.h * scaleFactor - childSize.h + 60
       : 150;
 
+    /** Lifts the wheel arc upward so it sits more centered in the mask (was visually low). */
+    const wheelBottomLiftPx = circleDiameter * 0.14;
+
     const visibleAreaHeight = childSize
-      ? circleDiameter * visibleDecimal + childSize.h / 2 + calculatedBuffer
-      : circleDiameter * visibleDecimal + 200;
+      ? circleDiameter * visibleDecimal +
+        childSize.h / 2 +
+        calculatedBuffer +
+        wheelBottomLiftPx * 0.45
+      : circleDiameter * visibleDecimal + 200 + wheelBottomLiftPx * 0.45;
 
     const swipeZoneClass =
       interaction === "swipe"
@@ -394,7 +400,7 @@ export const RadialScrollGallery = forwardRef<
             style={{
               width: circleDiameter,
               height: circleDiameter,
-              bottom: -(circleDiameter * hiddenDecimal),
+              bottom: -(circleDiameter * hiddenDecimal) + wheelBottomLiftPx,
             }}
           >
             {childrenNodes.map((child, index) => {
