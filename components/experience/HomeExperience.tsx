@@ -12,6 +12,7 @@ import {
 } from "@/components/experience/hero-scroll-timeline";
 import { SelectedWork } from "@/components/experience/SelectedWork";
 import { NextSectionContent } from "@/components/hero/NextSectionContent";
+import { FloatingPaths } from "@/components/ui/background-paths";
 
 const BIO =
   "I am a visionary designer who bridges cultures through his innovative design philosophy and scaleable systems.";
@@ -23,6 +24,18 @@ const BIO =
 const SCROLL_BUDGET_VH = 1320;
 /** Total track = one viewport + scroll budget while pinned */
 const SCROLL_TRACK_VH = 100 + SCROLL_BUDGET_VH;
+
+function DoorPathsBackdrop() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+      aria-hidden
+    >
+      <FloatingPaths position={1} svgClassName="text-white" />
+      <FloatingPaths position={-1} svgClassName="text-white" />
+    </div>
+  );
+}
 
 function LightRayLayer({ className }: { className?: string }) {
   return (
@@ -57,6 +70,7 @@ function DoorPanel({
       style={{ y, rotateZ, zIndex, willChange: "transform" }}
       className={`absolute left-0 right-0 flex flex-col overflow-hidden bg-[#000000] ${className ?? ""}`}
     >
+      <DoorPathsBackdrop />
       {showLightRay ? <LightRayLayer /> : null}
       <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col">{children}</div>
     </motion.div>
