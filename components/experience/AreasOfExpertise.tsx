@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FloatingPaths } from "@/components/ui/background-paths";
 import { EXPERTISE_ITEMS, type ExpertiseItem } from "./expertise-data";
 
 const iconMotionPresets: import("framer-motion").Target[] = [
@@ -44,12 +43,8 @@ export function AreasOfExpertise() {
       className="relative z-0 overflow-hidden border-t border-white/[0.06] bg-transparent px-6 py-20 md:px-10 md:py-28 lg:px-16"
       aria-labelledby="expertise-heading"
     >
-      {/* Same path motif as hero doors + shared shader visible underneath */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
-        <FloatingPaths position={1} svgClassName="text-white" />
-        <FloatingPaths position={-1} svgClassName="text-white" />
-      </div>
-      <div className="relative z-10 mx-auto max-w-5xl">
+      {/* Same as “Next section” intro: shared WebGL backdrop only (no path overlay) */}
+      <div className="relative mx-auto max-w-5xl">
         <motion.h2
           id="expertise-heading"
           className="mb-14 text-4xl font-semibold tracking-tight text-white md:mb-20 md:text-5xl lg:text-[3.25rem]"

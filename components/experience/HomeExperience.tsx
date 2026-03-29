@@ -56,6 +56,7 @@ function DoorPanel({
   y,
   rotateZ,
   zIndex,
+  showPathsBackdrop,
   showLightRay,
 }: {
   children: React.ReactNode;
@@ -63,6 +64,8 @@ function DoorPanel({
   y: MotionValue<string>;
   rotateZ?: MotionValue<number>;
   zIndex: MotionValue<number>;
+  /** Lower door only: animated paths (upper stays plain black). */
+  showPathsBackdrop?: boolean;
   showLightRay?: boolean;
 }) {
   return (
@@ -70,7 +73,7 @@ function DoorPanel({
       style={{ y, rotateZ, zIndex, willChange: "transform" }}
       className={`absolute left-0 right-0 flex flex-col overflow-hidden bg-[#000000] ${className ?? ""}`}
     >
-      <DoorPathsBackdrop />
+      {showPathsBackdrop ? <DoorPathsBackdrop /> : null}
       {showLightRay ? <LightRayLayer /> : null}
       <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col">{children}</div>
     </motion.div>
@@ -136,7 +139,6 @@ export function HomeExperience() {
             y={topY}
             rotateZ={topSkew}
             zIndex={doorZIndex}
-            showLightRay
           >
             <header className="flex shrink-0 items-center justify-between px-6 pt-8 md:px-10 md:pt-10">
               <span className="text-sm font-medium tracking-tight text-white md:text-base">
@@ -156,7 +158,13 @@ export function HomeExperience() {
             </div>
           </DoorPanel>
 
-          <DoorPanel className="bottom-0 h-1/2" y={bottomY} rotateZ={bottomSkew} zIndex={doorZIndex}>
+          <DoorPanel
+            className="bottom-0 h-1/2"
+            y={bottomY}
+            rotateZ={bottomSkew}
+            zIndex={doorZIndex}
+            showPathsBackdrop
+          >
             <div className="flex min-h-0 flex-1 items-start justify-center px-6 pt-0 md:px-10">
               <h1 className="text-[clamp(3rem,14vw,10rem)] font-semibold leading-[0.82] tracking-[-0.04em] text-white">
                 Imran
