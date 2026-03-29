@@ -64,7 +64,16 @@ function useResponsiveValue(baseValue: number, mobileValue: number) {
 export interface RadialScrollGalleryProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   children: (hoveredIndex: number | null) => ReactNode[];
+  /**
+   * Vertical scroll distance (px) for one full 360° rotation of the wheel.
+   * Total pinned scroll = scrollDuration × fullRotations.
+   */
   scrollDuration?: number;
+  /**
+   * How many full rotations while pinned — keeps the wheel turning as you scroll.
+   * @default 32
+   */
+  fullRotations?: number;
   visiblePercentage?: number;
   baseRadius?: number;
   mobileRadius?: number;
@@ -82,6 +91,7 @@ export const RadialScrollGallery = forwardRef<
     {
       children,
       scrollDuration = 2500,
+      fullRotations = 32,
       visiblePercentage = 45,
       baseRadius = 550,
       mobileRadius = 220,
@@ -90,6 +100,7 @@ export const RadialScrollGallery = forwardRef<
       onItemSelect,
       direction = "ltr",
       disabled = false,
+      style,
       ...rest
     },
     ref,
@@ -99,6 +110,46 @@ export const RadialScrollGallery = forwardRef<
     const childRef = useRef<HTMLLIElement>(null);
 
     const mergedRef = useMergeRefs(ref, pinRef);
+
+    const [hoverFinePointer, setHoverFinePointer] = useState(true);
+
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+      const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+      const sync = () => setHoverFinePointer(mq.matches);
+      sync();
+      mq.addEventListener("change", sync);
+      return () => mq.removeEventListener("change", sync);
+    }, []);
+
+    /** Touch: smoother pinned scroll (iOS) without affecting desktop wheel behavior. */
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      if (!coarse) return;
+      ScrollTrigger.normalizeScroll(true);
+      return () => {
+        ScrollTrigger.normalizeScroll(false);
+      };
+    }, []);
+
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+      let timeoutId: ReturnType<typeof setTimeout>;
+      const refresh = () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          ScrollTrigger.refresh();
+        }, 200);
+      };
+      window.addEventListener("orientationchange", refresh);
+      window.addEventListener("resize", refresh);
+      return () => {
+        clearTimeout(timeoutId);
+        window.removeEventListener("orientationchange", refresh);
+        window.removeEventListener("resize", refresh);
+      };
+    }, []);
 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [childSize, setChildSize] = useState<{ w: number; h: number } | null>(
@@ -154,6 +205,9 @@ export const RadialScrollGallery = forwardRef<
         ).matches;
 
         if (!prefersReducedMotion) {
+          const totalDeg = 360 * fullRotations;
+          const totalScroll = scrollDuration * fullRotations;
+
           gsap.fromTo(
             containerRef.current.children,
             { scale: 0, autoAlpha: 0 },
@@ -172,14 +226,16 @@ export const RadialScrollGallery = forwardRef<
           );
 
           gsap.to(containerRef.current, {
-            rotation: 360,
+            rotation: totalDeg,
             ease: "none",
             scrollTrigger: {
               trigger: pinRef.current,
               pin: true,
+              pinSpacing: true,
               start: startTrigger,
-              end: `+=${scrollDuration}`,
+              end: `+=${totalScroll}`,
               scrub: 1,
+              anticipatePin: 1,
               invalidateOnRefresh: true,
             },
           });
@@ -189,6 +245,7 @@ export const RadialScrollGallery = forwardRef<
         scope: pinRef,
         dependencies: [
           scrollDuration,
+          fullRotations,
           currentRadius,
           startTrigger,
           childrenCount,
@@ -210,11 +267,12 @@ export const RadialScrollGallery = forwardRef<
     return (
       <div
         ref={mergedRef}
-        className={`min-h-screen w-full relative flex items-center justify-center overflow-hidden ${className}`}
+        className={`min-h-screen w-full relative flex items-center justify-center overflow-hidden overscroll-y-contain touch-pan-y ${className}`}
+        style={{ overscrollBehaviorY: "contain", ...style }}
         {...rest}
       >
         <div
-          className="relative w-full overflow-hidden"
+          className="relative w-full overflow-hidden overscroll-y-contain"
           style={{
             height: `${visibleAreaHeight}px`,
             maskImage:
@@ -274,17 +332,27 @@ export const RadialScrollGallery = forwardRef<
                         onItemSelect?.(index);
                       }
                     }}
-                    onMouseEnter={() => !disabled && setHoveredIndex(index)}
-                    onMouseLeave={() => !disabled && setHoveredIndex(null)}
+                    onMouseEnter={() =>
+                      !disabled && hoverFinePointer && setHoveredIndex(index)
+                    }
+                    onMouseLeave={() =>
+                      !disabled && hoverFinePointer && setHoveredIndex(null)
+                    }
+                    onPointerDown={() =>
+                      !disabled && !hoverFinePointer && setHoveredIndex(index)
+                    }
+                    onPointerUp={() =>
+                      !disabled && !hoverFinePointer && setHoveredIndex(null)
+                    }
                     onFocus={() => !disabled && setHoveredIndex(index)}
                     onBlur={() => !disabled && setHoveredIndex(null)}
                     className={`
                       block cursor-pointer outline-none text-left
                       focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black
-                      rounded-xl transition-all duration-500 ease-out will-change-transform
-                      ${isHovered ? "scale-125 -translate-y-8" : "scale-100"}
+                      rounded-xl transition-[filter,opacity,transform] duration-500 ease-out will-change-transform
+                      ${hoverFinePointer && isHovered ? "md:scale-105 md:-translate-y-3" : "scale-100 translate-y-0"}
                       ${
-                        isAnyHovered && !isHovered
+                        hoverFinePointer && isAnyHovered && !isHovered
                           ? "blur-[2px] opacity-40 grayscale"
                           : "blur-0 opacity-100"
                       }

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function MyWorkPage() {
   return (
-    <main className="relative min-h-screen bg-black text-white">
+    <main className="relative min-h-[100dvh] bg-black text-white overscroll-none">
       <MyWorkGallery />
     </main>
   );
