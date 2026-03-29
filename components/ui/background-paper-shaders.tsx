@@ -140,11 +140,12 @@ function ShaderScene() {
 
 export function PaperShaderBackdrop() {
   return (
-    <div className="h-full w-full min-h-full bg-black">
+    <div className="absolute inset-0 bg-black">
       <Canvas
+        className="absolute inset-0 !h-full !w-full touch-none"
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         camera={{ position: [0, 0, 1], fov: 75 }}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", display: "block" }}
         dpr={[1, 2]}
       >
         <ShaderScene />

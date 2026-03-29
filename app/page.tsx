@@ -7,14 +7,19 @@ import { WhatIveBuilt } from "@/components/experience/WhatIveBuilt";
 export default function Home() {
   return (
     <main className="relative min-h-screen bg-neutral-950 text-white">
-      {/* One shared shader backdrop for hero + first section (continuous, not duplicated per door) */}
+      {/* PaperShader behind hero and behind Expertise (same as “Next section” overlay stack) */}
       <div className="relative isolate z-10">
-        <HeroExpertiseBackground />
-        <div className="relative z-10">
-          <HomeExperience />
+        <div className="relative isolate z-10">
+          <HeroExpertiseBackground />
+          <div className="relative z-10">
+            <HomeExperience />
+          </div>
         </div>
-        <div className="relative z-10 min-h-[100svh] scroll-mt-0">
-          <AreasOfExpertise />
+        <div className="relative isolate z-10 min-h-[100svh] scroll-mt-0">
+          <HeroExpertiseBackground />
+          <div className="relative z-10">
+            <AreasOfExpertise />
+          </div>
         </div>
       </div>
 
