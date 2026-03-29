@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   animate,
@@ -10,6 +9,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
 } from "framer-motion";
+import { MyWorkLink } from "@/components/ui/my-work-link";
 import { BUILT_SLIDES } from "./built-carousel-data";
 
 /** One full pass through all slides (seconds) — billboard speed */
@@ -99,12 +99,7 @@ export function WhatIveBuilt() {
             Crafted Web Experiences
           </p>
           <div className="mt-8">
-            <Link
-              href="/my-work"
-              className="inline-flex items-center justify-center rounded-md border border-white bg-black px-5 py-2.5 text-sm font-semibold tracking-wide text-white transition-colors hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              My Work
-            </Link>
+            <MyWorkLink />
           </div>
         </motion.div>
       </div>

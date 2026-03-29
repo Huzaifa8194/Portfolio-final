@@ -2,6 +2,8 @@ export type ProjectSlide = {
   title: string;
   description: string;
   image: string;
+  /** Case study detail route */
+  href: string;
 };
 
 /** Used when `/images/*.png` is missing or fails to load (e.g. before you add assets). */
@@ -17,17 +19,20 @@ export const SELECTED_PROJECTS: ProjectSlide[] = [
     description:
       "A visually immersive travel platform that transforms destination discovery into a seamless booking experience designed to inspire exploration, refined to turn dream trips into reality.",
     image: "/images/rivera_1.png",
+    href: "/projects/rivera",
   },
   {
     title: "Mayvn",
     description:
       "An AI-powered marketing assistant that automates campaigns from idea to execution — built to simplify complex workflows, refined to make high-impact marketing feel effortless.",
     image: "/images/mayvn_1.png",
+    href: "/projects/mayvn",
   },
   {
     title: "iWrity",
     description:
       "A conversion-focused platform that connects authors with genuine readers for authentic, compliant reviews built to navigate strict marketplace policies, refined to deliver real growth without risking account integrity.",
     image: "/images/iwrity_1.png",
+    href: "/projects/iwrity",
   },
 ];

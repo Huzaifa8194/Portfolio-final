@@ -16,6 +16,7 @@ import {
   useReducedMotion,
   type PanInfo,
 } from "framer-motion";
+import { MyWorkLink } from "@/components/ui/my-work-link";
 import { APP_SLIDES } from "./built-apps-data";
 
 const N = APP_SLIDES.length;
@@ -200,6 +201,9 @@ export function BuiltApps() {
           <p className="mt-3 text-lg font-medium text-white/80 md:text-2xl md:font-normal">
             Crafted Mobile Experiences
           </p>
+          <div className="mt-8">
+            <MyWorkLink />
+          </div>
         </motion.div>
       </div>
 

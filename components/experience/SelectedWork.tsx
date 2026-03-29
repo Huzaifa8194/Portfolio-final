@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   motion,
   useTransform,
@@ -212,12 +213,12 @@ export function SelectedWork({ scrollYProgress, sceneOpacity }: SelectedWorkProp
                 {SELECTED_PROJECTS[activeSlide].description}
               </p>
               <div className="mt-8">
-                <a
-                  href="#"
+                <Link
+                  href={SELECTED_PROJECTS[activeSlide].href}
                   className="inline-flex items-center justify-center rounded-sm bg-white px-7 py-3 text-sm font-medium text-black transition-opacity hover:opacity-90"
                 >
                   Explore
-                </a>
+                </Link>
               </div>
             </div>
           </div>
