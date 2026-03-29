@@ -2,23 +2,9 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 import { cn } from "@/lib/utils";
-
-/** Matches Tailwind: w-[min(94vw,1200px)] aspect-[16/10] — used to compute end zoom that fits the viewport. */
-function computeHeroFitScale() {
-  if (typeof window === "undefined") return 1.12;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const w0 = Math.min(vw * 0.94, 1200);
-  const h0 = w0 * (10 / 16);
-  /** Small inset so the final frame isn’t flush against the bezel */
-  const pad = 0.97;
-  const sx = (vw * pad) / w0;
-  const sy = (vh * pad) / h0;
-  return Math.max(1, Math.min(sx, sy));
-}
 
 export interface ZoomParallaxImage {
   src: string;
@@ -32,41 +18,37 @@ interface ZoomParallaxProps {
 
 export function ZoomParallax({ images }: ZoomParallaxProps) {
   const container = useRef<HTMLDivElement>(null);
-  const [heroEndScale, setHeroEndScale] = useState(1.12);
-
-  useLayoutEffect(() => {
-    const update = () => setHeroEndScale(computeHeroFitScale());
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
   const { scrollYProgress } = useScroll({
     target: container,
     offset: ["start start", "end end"],
   });
 
-  /** Hero (screenshot): ends exactly “contain”-fit to the viewport — not 4× like the decorative layers. */
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, heroEndScale]);
+  /**
+   * Main screenshot: zoom **out** → **in** to natural size.
+   * End scale is always `1` so the CSS box never exceeds the viewport (never larger than screen).
+   */
+  const scaleHero = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
 
-  const scale5 = useTransform(scrollYProgress, [0, 1], [1, 5]);
-  const scale6 = useTransform(scrollYProgress, [0, 1], [1, 6]);
-  const scale8 = useTransform(scrollYProgress, [0, 1], [1, 8]);
-  const scale9 = useTransform(scrollYProgress, [0, 1], [1, 9]);
+  /** Decorative layers: modest zoom so they stay atmosphere, not dominant */
+  const scale4 = useTransform(scrollYProgress, [0, 1], [1, 2.2]);
+  const scale5 = useTransform(scrollYProgress, [0, 1], [1, 2.4]);
+  const scale6 = useTransform(scrollYProgress, [0, 1], [1, 2.6]);
+  const scale8 = useTransform(scrollYProgress, [0, 1], [1, 2.8]);
+  const scale9 = useTransform(scrollYProgress, [0, 1], [1, 3]);
 
-  const scales = [heroScale, scale5, scale6, scale5, scale6, scale8, scale9];
+  const scales = [scale4, scale5, scale6, scale5, scale6, scale8, scale9];
 
   return (
     <div ref={container} className="relative h-[300vh]">
       <div className="sticky top-0 h-screen overflow-hidden">
         {images.map(({ src, alt }, index) => {
-          const scale = scales[index % scales.length];
           const isHeroScreenshot = index === 0;
+          const scale = isHeroScreenshot ? scaleHero : scales[index % scales.length];
 
           return (
             <motion.div
               key={`${src}-${index}`}
-              style={{ scale }}
+              style={{ scale, transformOrigin: "center center" }}
               className={`absolute top-0 flex h-full w-full items-center justify-center ${
                 index === 1
                   ? "[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]"
@@ -85,7 +67,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                 className={cn(
                   "relative overflow-hidden shadow-2xl",
                   isHeroScreenshot
-                    ? "w-[min(94vw,1200px)] aspect-[16/10] rounded-md bg-neutral-950 ring-1 ring-white/10"
+                    ? "w-[min(96vw,1200px)] max-h-[min(82vh,900px)] aspect-[16/10] rounded-md bg-neutral-950 ring-1 ring-white/10"
                     : "h-[25vh] w-[25vw] rounded-sm",
                 )}
               >
@@ -98,7 +80,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                   )}
                   sizes={
                     isHeroScreenshot
-                      ? "(max-width: 768px) 94vw, 1200px"
+                      ? "(max-width: 768px) 96vw, 1200px"
                       : "(max-width: 768px) 90vw, 25vw"
                   }
                   draggable={false}
