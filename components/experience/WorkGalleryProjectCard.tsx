@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import type { WorkGalleryItem } from "@/components/experience/work-gallery-data";
@@ -85,7 +86,7 @@ export function WorkGalleryProjectCard({
           </div>
         </div>
 
-        <div>
+        <div className="pointer-events-auto">
           <h3
             className={cn(
               "font-bold leading-tight text-white tracking-tight",
@@ -100,6 +101,30 @@ export function WorkGalleryProjectCard({
               isActive ? "w-full opacity-100" : "w-0 opacity-0",
             )}
           />
+          <div className="mt-3">
+            {project.detailHref ? (
+              <Link
+                href={project.detailHref}
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className={cn(
+                  "inline-flex items-center justify-center rounded-md border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-white backdrop-blur-sm transition-colors hover:bg-white/20",
+                  featured && "px-4 py-2 text-sm",
+                )}
+              >
+                Details
+              </Link>
+            ) : (
+              <span
+                className={cn(
+                  "inline-flex items-center justify-center rounded-md border border-white/10 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-white/35",
+                  featured && "px-4 py-2 text-xs",
+                )}
+              >
+                Details soon
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

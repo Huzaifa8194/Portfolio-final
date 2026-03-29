@@ -6,6 +6,8 @@ export type WorkGalleryItem = {
   cat: string;
   src: string;
   alt: string;
+  /** Case study / project page — set when a page exists */
+  detailHref?: string;
 };
 
 /** Inferred display names and categories from image filenames + carousel alts. */
@@ -30,6 +32,12 @@ function metaFromSrc(src: string, alt: string): { title: string; cat: string } {
   return { title: words || alt, cat: "Work" };
 }
 
+function detailHrefFromSrc(src: string): string | undefined {
+  const base = src.replace(/^\/images\//, "").replace(/\.(png|jpe?g|webp|gif)$/i, "");
+  if (base === "iwrity" || base === "iwrity2") return "/projects/iwrity";
+  return undefined;
+}
+
 export const WORK_GALLERY_ITEMS: WorkGalleryItem[] = BUILT_SLIDES.map((slide, i) => {
   const { title, cat } = metaFromSrc(slide.src, slide.alt);
   return {
@@ -38,5 +46,6 @@ export const WORK_GALLERY_ITEMS: WorkGalleryItem[] = BUILT_SLIDES.map((slide, i)
     cat,
     src: slide.src,
     alt: slide.alt,
+    detailHref: detailHrefFromSrc(slide.src),
   };
 });

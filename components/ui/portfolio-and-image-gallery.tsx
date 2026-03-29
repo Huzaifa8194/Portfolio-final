@@ -429,15 +429,11 @@ export const RadialScrollGallery = forwardRef<
                   }}
                 >
                   <div
-                    role="button"
-                    tabIndex={disabled ? -1 : 0}
-                    onClick={() => !disabled && onItemSelect?.(index)}
-                    onKeyDown={(e) => {
-                      if (disabled) return;
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        onItemSelect?.(index);
-                      }
+                    role="group"
+                    tabIndex={-1}
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest("a[href]")) return;
+                      if (!disabled) onItemSelect?.(index);
                     }}
                     onMouseEnter={() =>
                       !disabled && hoverFinePointer && setHoveredIndex(index)
