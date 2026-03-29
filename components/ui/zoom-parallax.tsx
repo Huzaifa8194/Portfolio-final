@@ -4,13 +4,15 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 
+import { cn } from "@/lib/utils";
+
 export interface ZoomParallaxImage {
   src: string;
   alt?: string;
 }
 
 interface ZoomParallaxProps {
-  /** Up to 7 images — first slot is typically the hero project shot */
+  /** Up to 7 images — index 0 is treated as a desktop site screenshot (wide frame). */
   images: ZoomParallaxImage[];
 }
 
@@ -34,6 +36,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
       <div className="sticky top-0 h-screen overflow-hidden">
         {images.map(({ src, alt }, index) => {
           const scale = scales[index % scales.length];
+          const isHeroScreenshot = index === 0;
 
           return (
             <motion.div
@@ -53,13 +56,26 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                   : ""
               } ${index === 6 ? "[&>div]:!top-[22.5vh] [&>div]:!left-[25vw] [&>div]:!h-[15vh] [&>div]:!w-[15vw]" : ""} `}
             >
-              <div className="relative h-[25vh] w-[25vw]">
+              <div
+                className={cn(
+                  "relative overflow-hidden shadow-2xl",
+                  isHeroScreenshot
+                    ? "w-[min(94vw,1200px)] max-h-[min(52vh,680px)] aspect-[16/10] rounded-md bg-neutral-950 ring-1 ring-white/10"
+                    : "h-[25vh] w-[25vw] rounded-sm",
+                )}
+              >
                 <Image
                   src={src}
                   alt={alt ?? `Parallax image ${index + 1}`}
                   fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 90vw, 25vw"
+                  className={cn(
+                    isHeroScreenshot ? "object-contain object-top" : "object-cover",
+                  )}
+                  sizes={
+                    isHeroScreenshot
+                      ? "(max-width: 768px) 94vw, 1200px"
+                      : "(max-width: 768px) 90vw, 25vw"
+                  }
                   draggable={false}
                   priority={index === 0}
                 />

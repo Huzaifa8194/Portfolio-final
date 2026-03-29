@@ -10,9 +10,7 @@ type WorkGalleryProjectCardProps = {
   project: WorkGalleryItem;
   isActive: boolean;
   className?: string;
-  /** Larger type + padding for mobile featured slides */
   variant?: "wheel" | "featured";
-  /** Next/Image LCP hint — only first card in a list */
   imagePriority?: boolean;
 };
 
@@ -65,7 +63,7 @@ export function WorkGalleryProjectCard({
           featured ? "p-5 sm:p-6" : "p-4",
         )}
       >
-        <div className="flex justify-between items-start gap-2">
+        <div className="pointer-events-auto flex justify-between items-start gap-3">
           <Badge
             variant="secondary"
             className={cn(
@@ -75,18 +73,36 @@ export function WorkGalleryProjectCard({
           >
             {project.cat}
           </Badge>
-          <div
-            className={cn(
-              "shrink-0 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300",
-              featured ? "w-8 h-8" : "w-6 h-6",
-              isActive ? "opacity-100 rotate-0" : "opacity-0 -rotate-45 scale-90",
-            )}
-          >
-            <ArrowUpRight size={featured ? 14 : 12} />
-          </div>
+
+          {project.detailHref ? (
+            <Link
+              href={project.detailHref}
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className={cn(
+                "shrink-0 inline-flex items-center gap-1 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-white/15",
+                featured && "px-3 py-1.5 text-xs gap-1.5",
+              )}
+            >
+              View
+              <ArrowUpRight
+                className={cn("opacity-90", featured ? "h-4 w-4" : "h-3.5 w-3.5")}
+                aria-hidden
+              />
+            </Link>
+          ) : (
+            <span
+              className={cn(
+                "shrink-0 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-medium text-white/35 ring-1 ring-white/10",
+                featured && "px-2.5 py-1 text-[11px]",
+              )}
+            >
+              Soon
+            </span>
+          )}
         </div>
 
-        <div className="pointer-events-auto">
+        <div className="pointer-events-none">
           <h3
             className={cn(
               "font-bold leading-tight text-white tracking-tight",
@@ -101,30 +117,6 @@ export function WorkGalleryProjectCard({
               isActive ? "w-full opacity-100" : "w-0 opacity-0",
             )}
           />
-          <div className="mt-3">
-            {project.detailHref ? (
-              <Link
-                href={project.detailHref}
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                className={cn(
-                  "inline-flex items-center justify-center rounded-md border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-white backdrop-blur-sm transition-colors hover:bg-white/20",
-                  featured && "px-4 py-2 text-sm",
-                )}
-              >
-                Details
-              </Link>
-            ) : (
-              <span
-                className={cn(
-                  "inline-flex items-center justify-center rounded-md border border-white/10 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-white/35",
-                  featured && "px-4 py-2 text-xs",
-                )}
-              >
-                Details soon
-              </span>
-            )}
-          </div>
         </div>
       </div>
     </div>
