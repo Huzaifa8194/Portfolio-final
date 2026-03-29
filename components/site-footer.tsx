@@ -1,7 +1,7 @@
 "use client";
 
 import { Footer } from "@/components/ui/modem-animated-footer";
-import { Linkedin, NotepadTextDashed } from "lucide-react";
+import { Linkedin } from "lucide-react";
 
 const LINKEDIN_URL =
   "https://www.linkedin.com/in/muhammad-huzaifa-imran-340991293/";
@@ -31,9 +31,6 @@ export function SiteFooter() {
         },
       ]}
       navLinks={navLinks}
-      brandIcon={
-        <NotepadTextDashed className="text-background h-8 w-8 drop-shadow-lg sm:h-10 sm:w-10 md:h-14 md:w-14" />
-      }
     />
   );
 }

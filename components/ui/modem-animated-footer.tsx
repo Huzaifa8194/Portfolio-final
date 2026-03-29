@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { NotepadTextDashed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -24,7 +23,6 @@ export interface FooterProps {
   navLinks?: FooterLink[];
   creatorName?: string;
   creatorUrl?: string;
-  brandIcon?: React.ReactNode;
   className?: string;
 }
 
@@ -35,13 +33,12 @@ export function Footer({
   navLinks = [],
   creatorName,
   creatorUrl,
-  brandIcon,
   className,
 }: FooterProps) {
   return (
     <section className={cn("relative mt-0 w-full overflow-hidden", className)}>
       <footer className="bg-background relative mt-20 border-t">
-        <div className="relative mx-auto flex min-h-[30rem] max-w-7xl flex-col justify-between p-4 py-10 sm:min-h-[35rem] md:min-h-[40rem]">
+        <div className="relative mx-auto flex min-h-[22rem] max-w-7xl flex-col justify-between p-4 py-10 sm:min-h-[26rem] md:min-h-[30rem]">
           <div className="mb-12 flex w-full flex-col sm:mb-20 md:mb-0">
             <div className="flex w-full flex-col items-center">
               <div className="flex flex-1 flex-col items-center space-y-2">
@@ -110,25 +107,13 @@ export function Footer({
         </div>
 
         <div
-          className="from-foreground/20 via-foreground/10 text-transparent pointer-events-none absolute bottom-40 left-1/2 max-w-[95vw] -translate-x-1/2 select-none bg-gradient-to-b to-transparent bg-clip-text px-4 text-center font-extrabold leading-none tracking-tighter md:bottom-32"
+          className="from-foreground/20 via-foreground/10 text-transparent pointer-events-none absolute bottom-16 left-1/2 max-w-[95vw] -translate-x-1/2 select-none bg-gradient-to-b to-transparent bg-clip-text px-4 text-center font-extrabold leading-none tracking-tighter md:bottom-12"
           style={{
             fontSize: "clamp(3rem, 12vw, 10rem)",
           }}
         >
           {brandName.toUpperCase()}
         </div>
-
-        <div className="border-border bg-background/60 hover:border-foreground absolute bottom-24 left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-3xl border-2 p-3 backdrop-blur-sm duration-300 drop-shadow-[0_0px_20px_rgba(0,0,0,0.5)] md:bottom-20 dark:drop-shadow-[0_0px_20px_rgba(255,255,255,0.3)]">
-          <div className="from-foreground shadow-lg flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br to-foreground/80 sm:h-16 sm:w-16 md:h-24 md:w-24">
-            {brandIcon || (
-              <NotepadTextDashed className="text-background h-8 w-8 drop-shadow-lg sm:h-10 sm:w-10 md:h-14 md:w-14" />
-            )}
-          </div>
-        </div>
-
-        <div className="via-border bg-border/80 absolute bottom-32 left-1/2 h-px w-full max-w-full -translate-x-1/2 bg-gradient-to-r from-transparent to-transparent backdrop-blur-sm sm:bottom-36" />
-
-        <div className="from-background via-background/80 to-background/40 absolute bottom-28 h-24 w-full bg-gradient-to-t blur-[1em]" />
       </footer>
     </section>
   );
