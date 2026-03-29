@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   animate,
@@ -97,6 +98,14 @@ export function WhatIveBuilt() {
           <p className="mt-3 text-lg font-medium text-white/80 md:text-2xl md:font-normal">
             Crafted Web Experiences
           </p>
+          <div className="mt-8">
+            <Link
+              href="/my-work"
+              className="inline-flex items-center justify-center rounded-md border border-white bg-black px-5 py-2.5 text-sm font-semibold tracking-wide text-white transition-colors hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            >
+              My Work
+            </Link>
+          </div>
         </motion.div>
       </div>
 
