@@ -39,11 +39,10 @@ export function MyWorkGallery() {
         </div>
 
         <p className="md:hidden text-sm text-white/60 text-center max-w-md leading-relaxed">
-          Same pieces as &ldquo;What I&apos;ve Built.&rdquo;{" "}
           <span className="text-white/80">Drag the wheel left or right</span> to spin it.
         </p>
         <p className="hidden md:block text-sm text-white/60 text-center max-w-md">
-          Same pieces as &ldquo;What I&apos;ve Built&rdquo; — scroll down to spin the wheel.
+          Scroll down to spin the wheel.
         </p>
 
         <div className="md:hidden text-white/40 text-xs tracking-wide">← drag →</div>
