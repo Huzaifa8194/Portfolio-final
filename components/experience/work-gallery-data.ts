@@ -19,10 +19,10 @@ function metaFromSrc(src: string, alt: string): { title: string; cat: string } {
     rivera: { title: "Rivera Travels", cat: "Travel" },
     iwrity: { title: "iWrity", cat: "Writing" },
     iwrity2: { title: "iWrity II", cat: "Writing" },
-    bce: { title: "BCE", cat: "Commerce" },
-    oracle: { title: "Oracle", cat: "Enterprise" },
+    bce: { title: "Best Car Events", cat: "Commerce" },
+    oracle: { title: "Oracle Grupo", cat: "Enterprise" },
     lawandbar: { title: "Law & Bar", cat: "Legal" },
-    sr: { title: "SR", cat: "Brand" },
+    sr: { title: "Nordic Relocators", cat: "Brand" },
   };
 
   const hit = titled[base];
@@ -36,6 +36,9 @@ function detailHrefFromSrc(src: string): string | undefined {
   const base = src.replace(/^\/images\//, "").replace(/\.(png|jpe?g|webp|gif)$/i, "");
   if (base === "iwrity" || base === "iwrity2") return "/projects/iwrity";
   if (base === "lawandbar") return "/projects/lawandbar";
+  if (base === "sr") return "/projects/sr";
+  if (base === "bce") return "/projects/bce";
+  if (base === "oracle") return "/projects/oracle";
   return undefined;
 }
 
