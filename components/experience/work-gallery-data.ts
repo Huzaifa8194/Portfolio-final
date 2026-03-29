@@ -39,6 +39,8 @@ function detailHrefFromSrc(src: string): string | undefined {
   if (base === "sr") return "/projects/sr";
   if (base === "bce") return "/projects/bce";
   if (base === "oracle") return "/projects/oracle";
+  if (base === "rivera") return "/projects/rivera";
+  if (base === "mayvn") return "/projects/mayvn";
   return undefined;
 }
 
