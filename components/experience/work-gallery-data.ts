@@ -35,6 +35,7 @@ function metaFromSrc(src: string, alt: string): { title: string; cat: string } {
 function detailHrefFromSrc(src: string): string | undefined {
   const base = src.replace(/^\/images\//, "").replace(/\.(png|jpe?g|webp|gif)$/i, "");
   if (base === "iwrity" || base === "iwrity2") return "/projects/iwrity";
+  if (base === "lawandbar") return "/projects/lawandbar";
   return undefined;
 }
 

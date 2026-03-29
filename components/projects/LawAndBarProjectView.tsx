@@ -8,11 +8,11 @@ import { ZoomParallax } from "@/components/ui/zoom-parallax";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const IWRITY_SRC = "/images/iwrity.png";
+const HERO_SRC = "/images/lawandbar.png";
 
-export function IwrityProjectView() {
+export function LawAndBarProjectView() {
   const images = [
-    { src: IWRITY_SRC, alt: "iWrity platform" },
+    { src: HERO_SRC, alt: "Law and Bar Academy platform" },
     ...PROJECT_PARALLAX_FILL_IMAGES,
   ];
 
@@ -35,7 +35,7 @@ export function IwrityProjectView() {
           My Work
         </Link>
         <h1 className="text-center text-4xl font-bold tracking-tight md:text-5xl">
-          iWrity
+          Law &amp; Bar Academy
         </h1>
         <p className="mt-3 max-w-md text-center text-sm text-white/55 md:text-base">
           Scroll to explore — zoom parallax, then read the story.
@@ -49,14 +49,12 @@ export function IwrityProjectView() {
           About
         </h2>
         <p className="mt-6 text-lg leading-relaxed text-white/85 md:text-xl">
-          iWrity is a platform designed mainly for self-published authors to gain genuine
-          Amazon reviews through a community-driven, point-based system. Instead of paying
-          for reviews—which violates Amazon policies—users earn points by reviewing other
-          authors&apos; books and then use those points to receive reviews on their own
-          work, creating a structured and compliant exchange. It focuses on real readers,
-          genre matching, and early traction for new books that struggle with visibility
-          due to lack of reviews, making it a practical growth tool for indie authors,
-          though its effectiveness depends heavily on active user participation.
+          Law and Bar Academy is a full-stack e-learning marketplace tailored for legal
+          professionals, offering structured course delivery with secure video hosting and
+          payment integration. Built using Next.js and AWS S3, the platform ensures
+          optimized content distribution while supporting multiple payment gateways such as
+          Stripe. The system emphasizes scalability, user experience, and secure
+          transactions, making it suitable for professional education environments.
         </p>
         <div className="mt-10">
           <Button
@@ -65,7 +63,7 @@ export function IwrityProjectView() {
             className="rounded-md bg-white text-black hover:bg-white/90"
           >
             <a
-              href="https://iwrity.com"
+              href="https://lawandbar.com"
               target="_blank"
               rel="noopener noreferrer"
             >
