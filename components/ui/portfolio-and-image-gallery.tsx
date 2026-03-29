@@ -9,6 +9,7 @@ import React, {
   ReactNode,
   Ref,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -61,18 +62,15 @@ function useResponsiveValue(baseValue: number, mobileValue: number) {
   return value;
 }
 
+/** Same turn rate as vertical scroll scrub: degrees per pixel of vertical scroll on desktop. */
+function degreesPerPixel(scrollDuration: number) {
+  return 360 / scrollDuration;
+}
+
 export interface RadialScrollGalleryProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   children: (hoveredIndex: number | null) => ReactNode[];
-  /**
-   * Vertical scroll distance (px) for one full 360° rotation of the wheel.
-   * Total pinned scroll = scrollDuration × fullRotations.
-   */
   scrollDuration?: number;
-  /**
-   * How many full rotations while pinned — keeps the wheel turning as you scroll.
-   * @default 32
-   */
   fullRotations?: number;
   visiblePercentage?: number;
   baseRadius?: number;
@@ -111,6 +109,18 @@ export const RadialScrollGallery = forwardRef<
 
     const mergedRef = useMergeRefs(ref, pinRef);
 
+    const [interaction, setInteraction] = useState<"scroll" | "swipe" | "pending">(
+      "pending",
+    );
+
+    useLayoutEffect(() => {
+      const mq = window.matchMedia("(max-width: 767px)");
+      const sync = () => setInteraction(mq.matches ? "swipe" : "scroll");
+      sync();
+      mq.addEventListener("change", sync);
+      return () => mq.removeEventListener("change", sync);
+    }, []);
+
     const [hoverFinePointer, setHoverFinePointer] = useState(true);
 
     useEffect(() => {
@@ -122,19 +132,9 @@ export const RadialScrollGallery = forwardRef<
       return () => mq.removeEventListener("change", sync);
     }, []);
 
-    /** Touch: smoother pinned scroll (iOS) without affecting desktop wheel behavior. */
     useEffect(() => {
       if (typeof window === "undefined") return;
-      const coarse = window.matchMedia("(pointer: coarse)").matches;
-      if (!coarse) return;
-      ScrollTrigger.normalizeScroll(true);
-      return () => {
-        ScrollTrigger.normalizeScroll(false);
-      };
-    }, []);
-
-    useEffect(() => {
-      if (typeof window === "undefined") return;
+      if (interaction !== "scroll") return;
       let timeoutId: ReturnType<typeof setTimeout>;
       const refresh = () => {
         clearTimeout(timeoutId);
@@ -149,13 +149,15 @@ export const RadialScrollGallery = forwardRef<
         window.removeEventListener("orientationchange", refresh);
         window.removeEventListener("resize", refresh);
       };
-    }, []);
+    }, [interaction]);
 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [childSize, setChildSize] = useState<{ w: number; h: number } | null>(
       null,
     );
     const [isMounted, setIsMounted] = useState(false);
+
+    const touchRotationRef = useRef(0);
 
     const currentRadius = useResponsiveValue(baseRadius, mobileRadius);
     const circleDiameter = currentRadius * 2;
@@ -186,17 +188,18 @@ export const RadialScrollGallery = forwardRef<
           });
           hasChanged = true;
         }
-        if (hasChanged) {
+        if (hasChanged && interaction === "scroll") {
           ScrollTrigger.refresh();
         }
       });
 
       observer.observe(childRef.current);
       return () => observer.disconnect();
-    }, [childrenCount]);
+    }, [childrenCount, interaction]);
 
     useGSAP(
       () => {
+        if (interaction === "pending") return;
         if (!pinRef.current || !containerRef.current || childrenCount === 0)
           return;
 
@@ -204,12 +207,15 @@ export const RadialScrollGallery = forwardRef<
           "(prefers-reduced-motion: reduce)",
         ).matches;
 
-        if (!prefersReducedMotion) {
-          const totalDeg = 360 * fullRotations;
-          const totalScroll = scrollDuration * fullRotations;
+        if (prefersReducedMotion) return;
 
+        const totalDeg = 360 * fullRotations;
+        const degPerPx = degreesPerPixel(scrollDuration);
+        const rtl = direction === "rtl" ? -1 : 1;
+
+        const intro = () => {
           gsap.fromTo(
-            containerRef.current.children,
+            containerRef.current!.children,
             { scale: 0, autoAlpha: 0 },
             {
               scale: 1,
@@ -217,13 +223,21 @@ export const RadialScrollGallery = forwardRef<
               duration: 1.2,
               ease: "back.out(1.2)",
               stagger: 0.05,
-              scrollTrigger: {
-                trigger: pinRef.current,
-                start: "top 80%",
-                toggleActions: "play none none reverse",
-              },
+              ...(interaction === "scroll"
+                ? {
+                    scrollTrigger: {
+                      trigger: pinRef.current!,
+                      start: "top 80%",
+                      toggleActions: "play none none reverse",
+                    },
+                  }
+                : {}),
             },
           );
+        };
+
+        if (interaction === "scroll") {
+          intro();
 
           gsap.to(containerRef.current, {
             rotation: totalDeg,
@@ -233,27 +247,98 @@ export const RadialScrollGallery = forwardRef<
               pin: true,
               pinSpacing: true,
               start: startTrigger,
-              end: `+=${totalScroll}`,
+              end: `+=${scrollDuration * fullRotations}`,
               scrub: 1,
               anticipatePin: 1,
               invalidateOnRefresh: true,
             },
           });
+
+          return () => {};
         }
+
+        /* —— Swipe (mobile): same total rotation range, driven by horizontal drag —— */
+        intro();
+
+        touchRotationRef.current = 0;
+        gsap.set(containerRef.current, { rotation: 0 });
+
+        const list = containerRef.current;
+        const zone = pinRef.current;
+        let dragging = false;
+        let lastX = 0;
+
+        const applyRotation = (next: number) => {
+          const clamped = Math.max(0, Math.min(totalDeg, next));
+          touchRotationRef.current = clamped;
+          gsap.set(list, { rotation: clamped });
+        };
+
+        const onPointerDown = (e: PointerEvent) => {
+          if (disabled) return;
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          dragging = true;
+          lastX = e.clientX;
+          zone.setPointerCapture(e.pointerId);
+        };
+
+        const onPointerMove = (e: PointerEvent) => {
+          if (!dragging || disabled) return;
+          const dx = e.clientX - lastX;
+          lastX = e.clientX;
+          const deltaDeg = dx * degPerPx * rtl;
+          applyRotation(touchRotationRef.current + deltaDeg);
+        };
+
+        const endDrag = (e: PointerEvent) => {
+          if (!dragging) return;
+          dragging = false;
+          try {
+            zone.releasePointerCapture(e.pointerId);
+          } catch {
+            /* ignore */
+          }
+        };
+
+        zone.addEventListener("pointerdown", onPointerDown);
+        zone.addEventListener("pointermove", onPointerMove);
+        zone.addEventListener("pointerup", endDrag);
+        zone.addEventListener("pointercancel", endDrag);
+        zone.addEventListener("lostpointercapture", endDrag);
+
+        return () => {
+          zone.removeEventListener("pointerdown", onPointerDown);
+          zone.removeEventListener("pointermove", onPointerMove);
+          zone.removeEventListener("pointerup", endDrag);
+          zone.removeEventListener("pointercancel", endDrag);
+          zone.removeEventListener("lostpointercapture", endDrag);
+        };
       },
       {
         scope: pinRef,
         dependencies: [
+          interaction,
           scrollDuration,
           fullRotations,
           currentRadius,
           startTrigger,
           childrenCount,
+          direction,
+          disabled,
         ],
       },
     );
 
     if (childrenCount === 0) return null;
+
+    if (interaction === "pending") {
+      return (
+        <div
+          className={`min-h-[min(100dvh,720px)] w-full bg-black ${className}`}
+          aria-hidden
+        />
+      );
+    }
 
     const scaleFactor = 1.25;
     const calculatedBuffer = childSize
@@ -264,13 +349,29 @@ export const RadialScrollGallery = forwardRef<
       ? circleDiameter * visibleDecimal + childSize.h / 2 + calculatedBuffer
       : circleDiameter * visibleDecimal + 200;
 
+    const swipeZoneClass =
+      interaction === "swipe"
+        ? "touch-none cursor-grab active:cursor-grabbing select-none"
+        : "touch-pan-y";
+
     return (
       <div
         ref={mergedRef}
-        className={`min-h-screen w-full relative flex items-center justify-center overflow-hidden overscroll-y-contain touch-pan-y ${className}`}
+        className={`min-h-screen w-full relative flex items-center justify-center overflow-hidden overscroll-y-contain ${swipeZoneClass} ${className}`}
         style={{ overscrollBehaviorY: "contain", ...style }}
+        role={interaction === "swipe" ? "application" : undefined}
+        aria-label={
+          interaction === "swipe"
+            ? "Spin the project wheel by dragging horizontally"
+            : undefined
+        }
         {...rest}
       >
+        {interaction === "swipe" && (
+          <p className="pointer-events-none absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-0 right-0 z-20 text-center text-[11px] tracking-wide text-white/40 px-4">
+            Drag left or right to spin
+          </p>
+        )}
         <div
           className="relative w-full overflow-hidden overscroll-y-contain"
           style={{
@@ -339,10 +440,16 @@ export const RadialScrollGallery = forwardRef<
                       !disabled && hoverFinePointer && setHoveredIndex(null)
                     }
                     onPointerDown={() =>
-                      !disabled && !hoverFinePointer && setHoveredIndex(index)
+                      !disabled &&
+                      interaction === "swipe" &&
+                      !hoverFinePointer &&
+                      setHoveredIndex(index)
                     }
                     onPointerUp={() =>
-                      !disabled && !hoverFinePointer && setHoveredIndex(null)
+                      !disabled &&
+                      interaction === "swipe" &&
+                      !hoverFinePointer &&
+                      setHoveredIndex(null)
                     }
                     onFocus={() => !disabled && setHoveredIndex(index)}
                     onBlur={() => !disabled && setHoveredIndex(null)}
