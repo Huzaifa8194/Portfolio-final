@@ -13,9 +13,10 @@ import {
 import { SelectedWork } from "@/components/experience/SelectedWork";
 import { NextSectionContent } from "@/components/hero/NextSectionContent";
 import { FloatingPaths } from "@/components/ui/background-paths";
+import { AnimatedHeaderMenu } from "@/components/ui/animated-header-menu";
 
 const BIO =
-  "I am a visionary designer who bridges cultures through his innovative design philosophy and scaleable systems.";
+  "I design concepts, manage teams, and build scalable solutions.";
 
 /**
  * Scroll-locked hero: sticky viewport ≈100vh while you scroll this much EXTRA past it.
@@ -140,17 +141,10 @@ export function HomeExperience() {
             rotateZ={topSkew}
             zIndex={doorZIndex}
           >
-            <header className="flex shrink-0 items-center justify-between px-6 pt-8 md:px-10 md:pt-10">
-              <span className="text-sm font-medium tracking-tight text-white md:text-base">
-                Huzaifa Imran
-              </span>
-              <button
-                type="button"
-                className="text-sm font-medium tracking-tight text-white transition-opacity hover:opacity-70 md:text-base"
-              >
-                Menu
-              </button>
-            </header>
+            <AnimatedHeaderMenu
+              brand="Huzaifa Imran"
+              className="shrink-0 px-6 pt-8 md:px-10 md:pt-10"
+            />
             <div className="flex min-h-0 flex-1 items-end justify-center px-6 pb-0 md:px-10">
               <h1 className="text-[clamp(3rem,14vw,10rem)] font-semibold leading-[0.82] tracking-[-0.04em] text-white">
                 Huzaifa
